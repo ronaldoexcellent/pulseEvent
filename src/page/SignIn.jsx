@@ -39,9 +39,12 @@ export default function SignIn({ onSignInSuccess }) {
         className="w-full max-w-md bg-white border border-gray-200/80 rounded-3xl p-8 shadow-xl relative z-10"
       >
         <div className="text-center mb-8">
-          <a href="/" className="text-2xl font-black tracking-tight text-pulse-text-dark inline-block">
-            Pulse<span className="text-pulse-purple-primary">Event</span>
+         <div className="flex flex-col shrink-0">
+          <a href="/" className=" flex items-center gap-0.5">
+           <img src="/pulse-event-logo.png" width={120} height={120} alt="PulseEvent Logo" />
           </a>
+          
+        </div> 
           <h2 className="text-xl font-black text-pulse-text-dark tracking-tight mt-3">
             Welcome Back to the Engine
           </h2>

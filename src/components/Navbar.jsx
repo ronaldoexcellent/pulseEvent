@@ -39,12 +39,10 @@ export default function Navbar({ user = null, onLogout, onSearchSubmit }) {
         
         {/* Brand Left Identity anchor layout */}
         <div className="flex flex-col shrink-0">
-          <a href="/" className="text-xl font-black tracking-tight text-pulse-text-dark flex items-center gap-0.5">
-            Pulse<span className="text-pulse-purple-primary">Event</span>
+          <a href="/" className=" flex items-center gap-0.5">
+           <img src="/pulse-event-logo.png" width={120} height={120} alt="PulseEvent Logo" />
           </a>
-          <span className="hidden lg:inline-block text-[9px] text-pulse-text-dark/50 font-black tracking-wider uppercase -mt-1">
-            Feel the Pulse of Every Event
-          </span>
+          
         </div>
 
         {/* --- Global Central Multi-Scope Search Engine Input Bar --- */}
@@ -158,7 +156,7 @@ export default function Navbar({ user = null, onLogout, onSearchSubmit }) {
             exit={{ opacity: 0, y: -10 }}
             className="md:hidden bg-white border-t border-gray-100 absolute top-full left-0 w-full p-5 space-y-4 shadow-xl z-50 text-left"
           >
-            <a href="/explore" className="block text-base font-bold text-pulse-text-dark/80" onClick={() => setIsOpen(false)}>Browse Events</a>
+            <a href="/browse" className="block text-base font-bold text-pulse-text-dark/80" onClick={() => setIsOpen(false)}>Browse Events</a>
             {user ? (
               <>
                 {authLinks.map((link) => (

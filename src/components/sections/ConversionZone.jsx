@@ -117,7 +117,7 @@ export default function ConversionZone() {
                   <motion.a
                     whileHover={{ y: -3, scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
-                    href="/event/:id"
+                    href="/create-event-ticket"
                     className="block w-full text-center py-4 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg shadow-pulse-purple-primary/20 transition-all"
                   >
                     Launch Event Ticket Tiers 🎫

@@ -85,13 +85,13 @@ export default function BrowseEvents() {
         </div>
 
         {/* Card Grid Matrix */}
-        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredItems.map((item) => (
               <motion.a
                 key={item.id}
                 layout
-                href={`/explore/${activeScope}/${item.id}`}
+                href={activeScope === 'events' ? `/explore/events/${item.id}` : `/explore/donations/${item.id}`}
                 initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.92 }}
@@ -117,7 +117,6 @@ export default function BrowseEvents() {
                       <span className="text-right">{activeScope === 'events' ? item.category : 'Crowdfund'}</span>
                     </div>
                     
-                    {/* Plain typography layout container replaces anchor to avoid nested structural link conflicts */}
                     <div className="text-base font-black text-pulse-text-dark tracking-tight line-clamp-2 leading-snug group-hover:text-pulse-purple-primary transition-colors">
                       {item.title}
                     </div>
@@ -152,7 +151,6 @@ export default function BrowseEvents() {
                       </div>
                     )}
 
-                    {/* Styled layout interface element completes the consistent card interactive feel */}
                     <div className="w-full py-2.5 bg-pulse-bg-light group-hover:bg-pulse-text-dark border border-gray-200 group-hover:border-pulse-text-dark rounded-xl text-xs font-black text-center text-pulse-text-dark group-hover:text-white tracking-wide transition-colors">
                       {activeScope === 'events' ? 'View Ticket Options 🎫' : 'View Donation Vault 💝'}
                     </div>
