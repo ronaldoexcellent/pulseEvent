@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+
+    /* New Hero Animations */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-in-up: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-text-rotate: textRotate 3s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes textRotate {
+    0%, 20% { opacity: 0; transform: translateY(10px); }
+    30%, 70% { opacity: 1; transform: translateY(0); }
+    80%, 100% { opacity: 0; transform: translateY(-10px); }
+  }
+
+  /* Brand Purple Variants */
+  --color-pulse-purple-primary: #5a1fb5;
+  --color-pulse-purple-secondary: #7b2bc9;
+
+  /* Brand Pink & Accent Variants */
+  --color-pulse-pink-primary: #f2378f;
+  --color-pulse-pink-accent: #ff4fa3;
+
+  /* Blend Value & Layout Backgrounds */
+  --color-pulse-gradient-blend: #c13ac7;
+  --color-pulse-bg-light: #f7f7fa;
+  
+  /* Text Map (Gray-800 Custom Variable) */
+  --color-pulse-text-dark: #1f2937;
+
+  /* Custom Linear Gradients for Buttons and Hero Components */
+  --background-image-pulse-gradient: linear-gradient(135deg, #5a1fb5 0%, #c13ac7 50%, #f2378f 100%);
+  --background-image-pulse-gradient-hover: linear-gradient(135deg, #7b2bc9 0%, #c13ac7 50%, #ff4fa3 100%);
+
+  /* Keyframe Animations */
+  --animate-scale-up: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-shake: shake 0.4s ease-in-out;
+
+  @keyframes scaleUp {
+    0% { transform: scale(0.96); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+}
