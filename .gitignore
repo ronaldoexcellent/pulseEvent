@@ -1,24 +1,29 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Security: Ignore environment variables
+.env
+auth.json
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependencies: Ignore heavy library folders
+node_modules/
+venv/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Build files: Ignore compiled node
+dist/
+build/
+*.exe
+
+# OS generated files:
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# Logs and databases
+*.Log
+*.sqlite
+
+# IDE/Editors
+.vscode/
+
+# Archives
+*.zip
+*.7z
+*.rar
+*.tar.gz

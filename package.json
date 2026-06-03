@@ -1,32 +1,26 @@
 {
-  "name": "pluse-event",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "pulseevent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "framer-motion": "^12.38.0",
-    "qrcode.react": "^4.2.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-router-dom": "^7.15.1",
-    "tailwindcss": "^4.3.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CJ-Logic-Agency/pulseEvent.git"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CJ-Logic-Agency/pulseEvent/issues"
+  },
+  "homepage": "https://github.com/CJ-Logic-Agency/pulseEvent#readme",
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "^10.3.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.6.0",
-    "vite": "^8.0.12"
+    "concurrently": "^9.2.1"
   }
 }
