@@ -40,7 +40,7 @@ export default function Navbar({ user = null, onLogout, onSearchSubmit }) {
         {/* Brand Left Identity anchor layout */}
         <div className="flex flex-col shrink-0">
           <a href="/" className=" flex items-center gap-0.5">
-           <img src="/pulse-event-logo.png" width={120} height={120} alt="PulseEvent Logo" />
+           <img src="/pulse-event-logo.png" width={120}  alt="PulseEvent Logo" />
           </a>
           
         </div>

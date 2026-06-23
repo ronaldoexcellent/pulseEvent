@@ -49,8 +49,8 @@ export default function AvailableDonationsPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-4xl font-black text-gray-950 uppercase tracking-tighter">
-              Available <span className="text-[#5a1fb5]">Donations</span>
+            <h1 className="text-4xl font-black text-gray-950 tracking-tighter">
+              Available <span className="text-transparent bg-clip-text bg-pulse-gradient">Donations</span>
             </h1>
             <p className="text-gray-500 text-sm font-medium mt-2">
               Support active campaigns or launch your own funding node.
@@ -59,7 +59,7 @@ export default function AvailableDonationsPage() {
 
           <button 
             onClick={() => navigate('/create-campaign')}
-            className="flex items-center gap-2 px-6 py-4 bg-[#f2378f] hover:bg-[#d12476] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-[#f2378f]/20 w-full md:w-auto justify-center"
+            className="flex items-center gap-2 px-6 py-4 bg-black hover:bg-[#d12476] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-[#f2378f]/20 w-full md:w-auto justify-center"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

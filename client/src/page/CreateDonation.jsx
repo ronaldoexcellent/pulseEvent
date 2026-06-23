@@ -169,16 +169,11 @@ export default function CreateDonation() {
         
         {/* Workspace Layout Header */}
         <div className="pb-6 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          <div className="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center shadow-lg shrink-0">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 21a9 9 0 0 0 9-9 9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9Z"/>
-              <path d="M12 7v10M9 10h6M9 14h6"/>
-            </svg>
+          <div className="w-16 h-16  text-white rounded-2xl flex items-center justify-center shadow-lg shrink-0">
+           <img src="/pulse-event-icon.png" width={200} alt="icon" />
           </div>
           <div>
-            <span className="text-[10px] font-black tracking-widest text-emerald-600 uppercase bg-emerald-50 px-4 py-1.5 rounded-full inline-block mb-2">
-              PULSE Donation Architecture
-            </span>
+           
             <h1 className="text-3xl font-black tracking-tight">Deploy Donation Node</h1>
             <p className="text-sm font-medium text-gray-500 mt-1">
               Initialize crowdfunding pipelines, verified allocation vaults, and ledger integration parameters.

@@ -43,7 +43,7 @@ export default function LiveDonationNotification({ currency = '₦' }) {
   }, []);
 
   return (
-    <div className="fixed bottom-6 left-[30%] z-50 pointer-events-none max-w-sm w-full px-4 sm:px-0">
+    <div className="fixed bottom-[11%] md:bottom-[6%] left-[30%] z-50 pointer-events-none max-w-sm w-full px-4 sm:px-0">
       <AnimatePresence mode="wait">
         {liveNotification && (
           <motion.div

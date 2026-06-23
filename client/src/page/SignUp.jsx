@@ -1,76 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import { Toaster, toast } from 'react-hot-toast';
 
-export default function SignUp({ onSignUpSuccess }) {
-  const [formData, setFormData] = useState({ 
-    firstName: '', 
-    lastName: '', 
-    username: '', 
-    nationality: '', 
+export default function SignUp() {
+  const initialFormState = { 
+    firstname: '', 
+    lastname: '', 
+    username: '',
     email: '', 
-    password: '' 
-  });
+    password: '',
+    confirmPassword: ''
+  };
+
+  // 2. Pass it to your useState hook
+  const [formData, setFormData] = useState(initialFormState);
   const [isLoading, setIsLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  // Curated list of African countries for the tailored selection node
-  const africanCountries = [
-    { code: 'DZ', name: 'Algeria', flag: '🇩🇿' },
-    { code: 'AO', name: 'Angola', flag: '🇦🇴' },
-    { code: 'BJ', name: 'Benin', flag: '🇧🇯' },
-    { code: 'BW', name: 'Botswana', flag: '🇧🇼' },
-    { code: 'BF', name: 'Burkina Faso', flag: '🇧🇫' },
-    { code: 'BI', name: 'Burundi', flag: '🇧🇮' },
-    { code: 'CV', name: 'Cabo Verde', flag: '🇨🇻' },
-    { code: 'CM', name: 'Cameroon', flag: '🇨🇲' },
-    { code: 'CF', name: 'Central African Republic', flag: '🇨🇫' },
-    { code: 'TD', name: 'Chad', flag: '🇹🇩' },
-    { code: 'KM', name: 'Comoros', flag: '🇰🇲' },
-    { code: 'CD', name: 'DR Congo', flag: '🇨🇩' },
-    { code: 'CG', name: 'Congo-Brazzaville', flag: '🇨🇬' },
-    { code: 'CI', name: 'Côte d’Ivoire', flag: '🇨🇮' },
-    { code: 'DJ', name: 'Djibouti', flag: '🇩🇯' },
-    { code: 'EG', name: 'Egypt', flag: '🇪🇬' },
-    { code: 'GQ', name: 'Equatorial Guinea', flag: '🇬🇶' },
-    { code: 'ER', name: 'Eritrea', flag: '🇪🇷' },
-    { code: 'SZ', name: 'Eswatini', flag: '🇸🇿' },
-    { code: 'ET', name: 'Ethiopia', flag: '🇪🇹' },
-    { code: 'GA', name: 'Gabon', flag: '🇬🇦' },
-    { code: 'GM', name: 'Gambia', flag: '🇬🇲' },
-    { code: 'GH', name: 'Ghana', flag: '🇬🇭' },
-    { code: 'GN', name: 'Guinea', flag: '🇬🇳' },
-    { code: 'GW', name: 'Guinea-Bissau', flag: '🇬🇼' },
-    { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
-    { code: 'LS', name: 'Lesotho', flag: '🇱🇸' },
-    { code: 'LR', name: 'Liberia', flag: '🇱🇷' },
-    { code: 'LY', name: 'Libya', flag: '🇱🇾' },
-    { code: 'MG', name: 'Madagascar', flag: '🇲🇬' },
-    { code: 'MW', name: 'Malawi', flag: '🇲🇼' },
-    { code: 'ML', name: 'Mali', flag: '🇲🇱' },
-    { code: 'MR', name: 'Mauritania', flag: '🇲🇷' },
-    { code: 'MU', name: 'Mauritius', flag: '🇲🇺' },
-    { code: 'MA', name: 'Morocco', flag: '🇲🇦' },
-    { code: 'MZ', name: 'Mozambique', flag: '🇲🇿' },
-    { code: 'NA', name: 'Namibia', flag: '🇳🇦' },
-    { code: 'NE', name: 'Niger', flag: '🇳🇪' },
-    { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
-    { code: 'RW', name: 'Rwanda', flag: '🇷🇼' },
-    { code: 'ST', name: 'São Tomé & Príncipe', flag: '🇸🇹' },
-    { code: 'SN', name: 'Senegal', flag: '🇸🇳' },
-    { code: 'SC', name: 'Seychelles', flag: '🇸🇨' },
-    { code: 'SL', name: 'Sierra Leone', flag: '🇸🇱' },
-    { code: 'SO', name: 'Somalia', flag: '🇸🇴' },
-    { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
-    { code: 'SS', name: 'South Sudan', flag: '🇸🇸' },
-    { code: 'SD', name: 'Sudan', flag: '🇸🇩' },
-    { code: 'TZ', name: 'Tanzania', flag: '🇹🇿' },
-    { code: 'TG', name: 'Togo', flag: '🇹🇬' },
-    { code: 'TN', name: 'Tunisia', flag: '🇹🇳' },
-    { code: 'UG', name: 'Uganda', flag: '🇺🇬' },
-    { code: 'ZM', name: 'Zambia', flag: '🇿🇲' },
-    { code: 'ZW', name: 'Zimbabwe', flag: '🇿🇼' }
-  ];
+  const [message, setMessage] = useState('');
+  const [err, setErr] = useState(false);
 
   // Close custom drop list dropdown when clicks clear the operational boundaries
   useEffect(() => {
@@ -88,41 +37,68 @@ export default function SignUp({ onSignUpSuccess }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const selectCountry = (countryName) => {
-    setFormData((prev) => ({ ...prev, nationality: countryName }));
-    setIsDropdownOpen(false);
-  };
-
-  const handleRegistrationSubmit = (e) => {
+  const handleRegistrationSubmit = async (e) => {
     e.preventDefault();
-    if (isLoading || !formData.nationality) return;
-
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (onSignUpSuccess) {
-        onSignUpSuccess({ 
-          username: formData.username.toLowerCase().trim(), 
+
+    if (formData.password !== formData.confirmpassword) {
+      setMessage('Passwords do not match.');
+      toast.error('Passwords do not match.');
+      setErr(true);
+      setTimeout(() => setIsLoading(false), 1500);
+      return;
+    }
+
+    else {
+      const loadtoast = toast.loading('Creating account...');
+      setTimeout(() => {
+        setIsLoading(false);
+        toast.dismiss(loadtoast);
+      }, 1500);
+
+      try {
+        // Axios POST request
+        const response = await axios.post('http://localhost:5000/api/signup', {
+          firstname: formData.firstname,
+          lastname: formData.lastname,
+          username: formData.username.toLowerCase().trim(),
           email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          nationality: formData.nationality
+          password: formData.password
         });
+
+        // Axios puts the server's response inside a 'data' object
+        if (response.status === 201) {
+          setMessage('Signup successful!');
+          toast.success('Signup successful!');
+          setErr(false);
+          setFormData(initialFormState);
+        }
+
+      } catch (err) {
+        // Axios catches 400 and 500 errors automatically in the 'catch' block
+        if (err.response && err.response.data) {
+          setMessage(err.response.data.message || 'Signup failed.');
+          toast.error(err.response.data.message || 'Signup failed.');
+          setErr(true);
+        } else {
+          setMessage('Cannot connect to server.');
+          toast.error(err.response.data.message || 'Signup failed.');
+          setErr(true);
+        }
       }
-    }, 1500);
+    }
   };
 
   const handleGoogleOAuthTrigger = () => {
     console.log("Redirecting secure pipeline handshake node to Google OAuth 2.0 registration gateway...");
   };
 
-  // Locate current country profile mapping metadata object
-  const selectedCountryObj = africanCountries.find(c => c.name === formData.nationality);
-
   return (
     <div className="min-h-[calc(100vh-73px)] w-full bg-pulse-bg-light flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
       <div className="absolute top-1/4 right-1/4 w-72 h-72 bg-pulse-purple-secondary/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-pulse-pink-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+      <Toaster />
 
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.98 }}
@@ -130,18 +106,14 @@ export default function SignUp({ onSignUpSuccess }) {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-xl bg-white border border-gray-200/80 rounded-3xl p-8 shadow-xl relative z-10"
       >
-        <div className="text-center mb-8">
-         <div className="flex flex-col tracking-tight inline-block shrink-0">
-          <a href="/" className=" flex items-center gap-0.5">
-           <img src="/pulse-event-logo.png" width={120} height={120} alt="PulseEvent Logo" />
+        <div className="text-center mb-7">
+          <div className="flex-col tracking-tight inline-block shrink-0">
+            <a href="/" className=" flex items-center gap-0.5">
+            <img src="/pulse-event-logo.png" width={120} height={120} alt="PulseEvent Logo" />
           </a>
-          
-        </div>
-         {/* <a href="/" className="text-2xl font-black tracking-tight text-pulse-text-dark inline-block">
-            Pulse<span className="text-pulse-purple-primary">Event</span>
-          </a> */}
+          </div>
           <h2 className="text-xl font-black text-pulse-text-dark tracking-tight mt-3">
-            Initialize Your Settlement Node
+            Register an account
           </h2>
           <p className="text-xs font-medium text-pulse-text-dark/50 mt-1">
             Build verified event ticket tiers or deploy social crowdfund vaults.
@@ -177,10 +149,10 @@ export default function SignUp({ onSignUpSuccess }) {
               </label>
               <input
                 type="text"
-                name="firstName"
+                name="firstname"
                 required
                 disabled={isLoading}
-                value={formData.firstName}
+                value={formData.firstname}
                 onChange={handleInputChange}
                 placeholder="John"
                 className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium text-pulse-text-dark px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pulse-purple-primary/10 transition-all placeholder:text-gray-400 disabled:opacity-60"
@@ -192,10 +164,10 @@ export default function SignUp({ onSignUpSuccess }) {
               </label>
               <input
                 type="text"
-                name="lastName"
+                name="lastname"
                 required
                 disabled={isLoading}
-                value={formData.lastName}
+                value={formData.lastname}
                 onChange={handleInputChange}
                 placeholder="Doe"
                 className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium text-pulse-text-dark px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pulse-purple-primary/10 transition-all placeholder:text-gray-400 disabled:opacity-60"
@@ -219,62 +191,6 @@ export default function SignUp({ onSignUpSuccess }) {
                 className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium text-pulse-text-dark px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pulse-purple-primary/10 transition-all placeholder:text-gray-400 disabled:opacity-60"
               />
             </div>
-
-            {/* --- Custom Styled African Region Selection Dropdown --- */}
-            <div ref={dropdownRef} className="relative">
-              <label className="block text-xs font-black uppercase tracking-wider text-pulse-text-dark/60 mb-2">
-                Nationality
-              </label>
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`w-full bg-pulse-bg-light border text-left text-sm font-medium px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pulse-purple-primary/10 flex items-center justify-between transition-all ${isDropdownOpen ? 'border-pulse-purple-primary ring-2 ring-pulse-purple-primary/10' : 'border-gray-200'} ${!formData.nationality ? 'text-gray-400' : 'text-pulse-text-dark'}`}
-              >
-                <span className="flex items-center gap-2">
-                  {selectedCountryObj ? (
-                    <>
-                      <span className="text-base leading-none">{selectedCountryObj.flag}</span>
-                      <span>{selectedCountryObj.name}</span>
-                    </>
-                  ) : (
-                    "Select African Country"
-                  )}
-                </span>
-                <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              <AnimatePresence>
-                {isDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute z-50 left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200"
-                  >
-                    <div className="sticky top-0 bg-white px-4 py-2 border-b border-gray-100 text-[10px] font-black uppercase tracking-widest text-pulse-text-dark/40">
-                      Regional Settlement Corridors
-                    </div>
-                    <div className="p-1.5 space-y-0.5">
-                      {africanCountries.map((country) => (
-                        <button
-                          key={country.code}
-                          type="button"
-                          onClick={() => selectCountry(country.name)}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-2.5 transition-colors ${formData.nationality === country.name ? 'bg-pulse-purple-primary/10 text-pulse-purple-primary font-bold' : 'text-pulse-text-dark hover:bg-pulse-bg-light'}`}
-                        >
-                          <span className="text-base leading-none">{country.flag}</span>
-                          <span>{country.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
 
           <div>
@@ -288,14 +204,14 @@ export default function SignUp({ onSignUpSuccess }) {
               disabled={isLoading}
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="hello@stelynk.com"
+              placeholder="hello@example.com"
               className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium text-pulse-text-dark px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pulse-purple-primary/10 transition-all placeholder:text-gray-400 disabled:opacity-60"
             />
           </div>
 
           <div>
             <label className="block text-xs font-black uppercase tracking-wider text-pulse-text-dark/60 mb-2">
-              Secure Passphrase
+              Create password
             </label>
             <input
               type="password"
@@ -308,6 +224,24 @@ export default function SignUp({ onSignUpSuccess }) {
               className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium text-pulse-text-dark px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pulse-purple-primary/10 transition-all placeholder:text-gray-400 disabled:opacity-60"
             />
           </div>
+
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-pulse-text-dark/60 mb-2">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              name="confirmpassword"
+              required
+              disabled={isLoading}
+              value={formData.confirmpassword}
+              onChange={handleInputChange}
+              placeholder="••••••••••••"
+              className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium text-pulse-text-dark px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pulse-purple-primary/10 transition-all placeholder:text-gray-400 disabled:opacity-60"
+            />
+          </div>
+
+          {message && <p className={`text-center mb-7 ${err ? 'text-red-500' : 'text-green-500'}`}><strong>{message}</strong></p>}
 
           <div className="pt-2">
             <motion.button
@@ -326,16 +260,18 @@ export default function SignUp({ onSignUpSuccess }) {
                   <span>Provisioning Account Node...</span>
                 </>
               ) : (
-                <span>Register Platform Credentials ⚡</span>
+                <>
+                  Register<span className="hidden -ml-1 md:inline">An Account</span>
+                </>
               )}
             </motion.button>
           </div>
         </form>
 
         <div className="text-center mt-6 pt-5 border-t border-gray-100 text-xs font-semibold text-pulse-text-dark/60">
-          <span>Already registered on the ledger? </span>
+          <span>Already registered for an account? </span>
           <a href="/signin" className="text-pulse-purple-primary font-black hover:underline">
-            Authenticate Access
+            Sign In
           </a>
         </div>
       </motion.div>

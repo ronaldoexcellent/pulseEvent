@@ -24,6 +24,10 @@ export default function DetailHub({ routeType = 'events', routeId = 'lagos-tech-
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Share Layout States
+  const [showDesktopShare, setShowDesktopShare] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
   // Consolidated form fields handling identities and covers
   const [formData, setFormData] = useState({
     name: '',
@@ -60,7 +64,7 @@ export default function DetailHub({ routeType = 'events', routeId = 'lagos-tech-
 
   const pricePerUnit = isEvent ? tierPrices[ticketTier] : Number(donationOffer || 0);
   const subtotal = isEvent ? pricePerUnit * ticketCount : pricePerUnit;
-  const platformFee = Math.round(subtotal * 0.025);
+  const platformFee = Math.round(subtotal * 0.063);
   const grandTotal = subtotal + platformFee;
 
   const handleInputChange = (e) => {
@@ -91,6 +95,33 @@ export default function DetailHub({ routeType = 'events', routeId = 'lagos-tech-
       setIsLoading(false);
       setIsSuccess(true);
     }, 2000);
+  };
+
+  // Adaptive Target Environment Sharing Engine
+  const handleShareExecution = async () => {
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobileDevice && navigator.share) {
+      try {
+        await navigator.share({
+          title: itemData.title,
+          text: itemData.description,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Mobile share UI execution dismissed.', error);
+      }
+    } else {
+      // Toggle custom inline desktop view panel state
+      setShowDesktopShare(prev => !prev);
+      setIsCopied(false);
+    }
+  };
+
+  const handleClipboardCopy = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2500);
   };
 
   return (
@@ -128,7 +159,55 @@ export default function DetailHub({ routeType = 'events', routeId = 'lagos-tech-
                   <span className="text-[10px] font-black uppercase tracking-widest text-pulse-purple-primary bg-pulse-purple-primary/10 px-3 py-1 rounded-md">
                     {isEvent ? itemData.category : 'Crowdfund Vault'}
                   </span>
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-pulse-text-dark">{itemData.title}</h1>
+                  
+                  {/* Share Icon implementation wrapper */}
+                  <div className="flex justify-between items-start gap-4 relative">
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-pulse-text-dark">{itemData.title}</h1>
+                    
+                    <div className="relative">
+                      <button 
+                        onClick={handleShareExecution}
+                        className={`p-2.5 border rounded-full transition-all shrink-0 ${showDesktopShare ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600'}`}
+                        title="Share Context Parameters"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                        </svg>
+                      </button>
+
+                      {/* Desktop Clipboard Distribution Menu Popover */}
+                      <AnimatePresence>
+                        {showDesktopShare && (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="absolute right-0 mt-3 w-72 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 z-50 space-y-2.5 origin-top-right"
+                          >
+                            <div>
+                              <h4 className="text-xs font-black tracking-wide uppercase text-gray-900">Pipeline Node Link</h4>
+                              <p className="text-[10px] font-semibold text-gray-400 mt-0.5">Copy this URL to distribute across external systems.</p>
+                            </div>
+                            <div className="flex gap-1.5 items-center bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                              <input 
+                                type="text" 
+                                readOnly 
+                                value={typeof window !== 'undefined' ? window.location.href : ''} 
+                                className="bg-transparent text-[11px] font-semibold px-2 text-gray-500 w-full focus:outline-none select-all"
+                              />
+                              <button
+                                onClick={handleClipboardCopy}
+                                className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all shrink-0 ${isCopied ? 'bg-emerald-600 text-white' : 'bg-gray-900 text-white hover:bg-black'}`}
+                              >
+                                {isCopied ? 'Copied' : 'Copy'}
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+
                   <p className="text-sm font-medium text-pulse-text-dark/60 leading-relaxed">{itemData.description}</p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100 text-sm font-semibold">
@@ -310,7 +389,7 @@ export default function DetailHub({ routeType = 'events', routeId = 'lagos-tech-
                       <span>{itemData.currency}{subtotal.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Escrow Clearing Fee (2.5%)</span>
+                      <span>Escrow Clearing Fee (6.3%)</span>
                       <span>{itemData.currency}{platformFee.toLocaleString()}</span>
                     </div>
                     <div className="h-px bg-gray-100 my-1" />

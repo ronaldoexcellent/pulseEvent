@@ -50,6 +50,13 @@ export default function DonationDetailHub() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  // Share Layout States
+  const [showDesktopShare, setShowDesktopShare] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // Receipt State
+  const [transactionId, setTransactionId] = useState('');
 
   // System view modifier (Simulates platform administration for deleting/replying)
   const [isOwnerView, setIsOwnerView] = useState(true);
@@ -65,7 +72,7 @@ export default function DonationDetailHub() {
   });
 
   const pricePerUnit = selectedPreset || Number(donationOffer || 0);
-  const platformFee = Math.round(pricePerUnit * 0.025);
+  const platformFee = Math.round(pricePerUnit * 0.063); // 6.3% clearing metric allocation
   const grandTotal = pricePerUnit + platformFee;
 
   const handleInputChange = (e) => {
@@ -109,6 +116,10 @@ export default function DonationDetailHub() {
         percentage: Math.min(100, ((prev.raised + pricePerUnit) / prev.target) * 100)
       }));
       setComments(prev => [operationalPayload, ...prev]);
+      
+      // Generate secure transaction hash for receipt
+      setTransactionId(`TXN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`);
+      
       setIsLoading(false);
       setIsSuccess(true);
     }, 2000);
@@ -149,6 +160,34 @@ export default function DonationDetailHub() {
     setSelectedPreset(null);
     setIsAnonymous(false);
     setIsSuccess(false);
+    setTransactionId('');
+  };
+
+  // Adaptive Target Environment Sharing Engine
+  const handleShareExecution = async () => {
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobileDevice && navigator.share) {
+      try {
+        await navigator.share({
+          title: campaign.title,
+          text: campaign.description,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Mobile share UI execution dismissed.', error);
+      }
+    } else {
+      // Toggle custom inline desktop view panel state
+      setShowDesktopShare(prev => !prev);
+      setIsCopied(false);
+    }
+  };
+
+  const handleClipboardCopy = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2500);
   };
 
   return (
@@ -192,11 +231,58 @@ export default function DonationDetailHub() {
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 space-y-4">
+                <div className="bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 space-y-4 relative">
                   <span className="text-[10px] font-black uppercase tracking-widest text-pulse-purple-primary bg-pulse-purple-primary/10 px-3 py-1 rounded-md">
                     {campaign.category}
                   </span>
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-pulse-text-dark">{campaign.title}</h1>
+                  
+                  <div className="flex justify-between items-start gap-4 relative">
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-pulse-text-dark">{campaign.title}</h1>
+                    
+                    <div className="relative">
+                      <button 
+                        onClick={handleShareExecution}
+                        className={`p-2.5 border rounded-full transition-all shrink-0 ${showDesktopShare ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600'}`}
+                        title="Share Context Parameters"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                        </svg>
+                      </button>
+
+                      {/* Desktop Clipboard Distribution Menu Popover */}
+                      <AnimatePresence>
+                        {showDesktopShare && (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="absolute right-0 mt-3 w-72 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 z-50 space-y-2.5 origin-top-right"
+                          >
+                            <div>
+                              <h4 className="text-xs font-black tracking-wide uppercase text-gray-900">Pipeline Node Link</h4>
+                              <p className="text-[10px] font-semibold text-gray-400 mt-0.5">Copy this URL to distribute across external systems.</p>
+                            </div>
+                            <div className="flex gap-1.5 items-center bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                              <input 
+                                type="text" 
+                                readOnly 
+                                value={typeof window !== 'undefined' ? window.location.href : ''} 
+                                className="bg-transparent text-[11px] font-semibold px-2 text-gray-500 w-full focus:outline-none select-all"
+                              />
+                              <button
+                                onClick={handleClipboardCopy}
+                                className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all shrink-0 ${isCopied ? 'bg-emerald-600 text-white' : 'bg-gray-900 text-white hover:bg-black'}`}
+                              >
+                                {isCopied ? 'Copied' : 'Copy'}
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                  
                   <p className="text-sm font-medium text-pulse-text-dark/60 leading-relaxed">{campaign.description}</p>
                 </div>
 
@@ -408,7 +494,7 @@ export default function DonationDetailHub() {
                       <span>{campaign.currency}{pricePerUnit.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Escrow Clearing Fee (2.5%)</span>
+                      <span>Escrow Clearing Fee (6.3%)</span>
                       <span>{campaign.currency}{platformFee.toLocaleString()}</span>
                     </div>
                     <div className="h-px bg-gray-100 my-1" />
@@ -429,34 +515,87 @@ export default function DonationDetailHub() {
               </div>
             </motion.div>
           ) : (
-            /* --- Success Feedback State Panel --- */
+            /* --- Success Feedback / Digital Receipt State Panel --- */
             <motion.div 
               key="success-card"
               initial={{ opacity: 0, scale: 0.95 }} 
               animate={{ opacity: 1, scale: 1 }} 
-              className="max-w-md mx-auto bg-white border border-gray-200 rounded-3xl p-8 shadow-2xl text-center space-y-6"
+              className="max-w-md mx-auto bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
             >
-              <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto text-2xl">✅</div>
-              <h2 className="text-xl font-black text-pulse-text-dark">Contribution Transferred</h2>
-              
-              <div className="bg-pulse-bg-light border border-gray-100 rounded-2xl p-4 text-left text-xs space-y-1.5">
-                <div className="font-black text-sm text-gray-900">{campaign.title}</div>
-                <div className="text-pulse-text-dark/60 font-medium">Status: Escrow Allocation Committed</div>
-                <div className="text-pulse-text-dark/60 font-medium">
-                  Entity: <span className="font-bold">{isAnonymous ? 'Anonymous' : formData.name || 'Anonymous Entity'}</span>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">✅</div>
+                <h2 className="text-xl font-black text-pulse-text-dark">Contribution Transferred</h2>
+                <p className="text-xs font-semibold text-gray-500 mt-1">Escrow Allocation Committed</p>
+              </div>
+
+              {/* Mandatory Screenshot Notification Wrapper */}
+              <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                  </svg>
                 </div>
-                {formData.introduction && (
-                  <div className="text-pulse-text-dark/50 italic bg-white p-2.5 rounded-lg border border-gray-200/60 mt-1 line-clamp-3">
-                    "{formData.introduction}"
-                  </div>
-                )}
-                <div className="font-bold text-pulse-purple-primary text-sm pt-1 border-t border-gray-200/60 mt-2">
-                  Settled sum: {campaign.currency}{grandTotal.toLocaleString()}
+                <div>
+                  <h4 className="text-xs font-black text-amber-900 uppercase tracking-widest">Screenshot Required</h4>
+                  <p className="text-[10.5px] font-bold text-amber-700 mt-1 leading-relaxed">
+                    Please take a screenshot of this digital ledger receipt now. It serves as your verifiable proof of capital deployment to this network node.
+                  </p>
                 </div>
               </div>
+
+              {/* Digital Receipt Card Element */}
+              <div className="relative bg-gray-50 border border-gray-200 rounded-2xl p-5 text-left text-xs space-y-4 shadow-inner">
+                {/* Visual Top Receipt Cutout styling */}
+                <div className="absolute -top-3 left-0 right-0 h-3 flex gap-2 overflow-hidden justify-around px-2 opacity-30">
+                   {[...Array(15)].map((_, i) => (
+                     <div key={i} className="w-3 h-3 bg-white rounded-full translate-y-1.5" />
+                   ))}
+                </div>
+
+                <div className="flex justify-between items-center border-b border-gray-200/60 pb-3">
+                  <span className="font-bold text-gray-500 uppercase tracking-wider text-[10px]">Transaction ID</span>
+                  <span className="font-black font-mono text-pulse-purple-primary text-sm">{transactionId}</span>
+                </div>
+
+                <div className="space-y-2 py-1">
+                  <div className="flex justify-between gap-4">
+                    <span className="font-bold text-gray-500 shrink-0">Campaign Node</span>
+                    <span className="font-black text-gray-900 text-right truncate">{campaign.title}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="font-bold text-gray-500 shrink-0">Origin Entity</span>
+                    <span className="font-black text-gray-900 text-right truncate">{isAnonymous ? 'Anonymous' : formData.name || 'Anonymous Entity'}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="font-bold text-gray-500 shrink-0">Timestamp</span>
+                    <span className="font-black text-gray-900 text-right">
+                      {new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200/60 pt-3 space-y-2">
+                  <div className="flex justify-between text-gray-600 font-bold">
+                    <span>Operational Base</span>
+                    <span>{campaign.currency}{pricePerUnit.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600 font-bold">
+                    <span>Network Fee</span>
+                    <span>{campaign.currency}{platformFee.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-end pt-2 border-t border-gray-200/60 mt-1">
+                    <span className="font-black text-gray-900 uppercase tracking-wider text-[10px]">Settled Sum</span>
+                    <span className="font-black text-lg text-transparent bg-clip-text bg-pulse-gradient">
+                      {campaign.currency}{grandTotal.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <button 
                 onClick={resetForm} 
-                className="w-full py-3 bg-pulse-text-dark text-white font-black text-xs rounded-xl transition-all shadow-md"
+                className="w-full py-4 bg-gray-900 hover:bg-black text-white font-black text-xs rounded-xl transition-all shadow-md"
               >
                 Return to Campaign Stack
               </button>

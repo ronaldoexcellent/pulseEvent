@@ -121,16 +121,12 @@ export default function CreateTicket() {
       <div className="max-w-4xl mx-auto space-y-8">
         
         <div className="pb-6 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          <div className="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center shadow-lg shrink-0">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-            </svg>
+          <div className="w-16 h-16  text-white rounded-2xl flex items-center justify-center shadow-lg shrink-0">
+          <img src="/pulse-event-icon.png" width={200} alt="icon" />
           </div>
           <div>
-            <span className="text-[10px] font-black tracking-widest text-indigo-600 uppercase bg-indigo-50 px-4 py-1.5 rounded-full inline-block mb-2">
-              PULSE Event Architecture
-            </span>
-            <h1 className="text-3xl font-black tracking-tight">Deploy Ticket Rig</h1>
+           
+            <h1 className="text-3xl font-black tracking-tight">Create Ticket</h1>
             <p className="text-sm font-medium text-gray-500 mt-1">
               Initialize live entry tokens, premium covers, specific pricing tiers, and inventory allocations.
             </p>

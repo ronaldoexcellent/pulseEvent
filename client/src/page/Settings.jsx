@@ -34,7 +34,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-[#f7f7fa] p-6 md:p-12 flex flex-col items-center">
       <div className="w-full max-w-2xl">
         <div className="mb-10">
-          <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter">Settings</h1>
+          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-pulse-gradient tracking-tighter">Settings</h1>
           <p className="text-gray-500 font-medium mt-2">Manage your platform identity and financial payout preferences.</p>
         </div>
 
