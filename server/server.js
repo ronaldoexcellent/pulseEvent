@@ -1,234 +1,357 @@
 // const express = require('express');
-// const nodemailer = require('nodemailer');
-// const cors = require('cors');
-// const app = express();
-// app.use(cors());
-// app.use(express.json());
-// const config = require('./config');
-
-
-// // Set up Nodemailer transporter
-// // index.js
-
-// console.log("Config loaded for user:", config.email.user);
-
-// const transporter = nodemailer.createTransport({
-//   service: 'gmail',
-//   auth: {
-//     user: config.email.user,
-//     pass: config.email.pass
-//   }
-// });
-
-// // // CRITICAL: Add this to find the exact error in your terminal
-// // transporter.verify((error, success) => {
-// //   if (error) {
-// //     console.error("❌ Nodemailer Setup Error:", error.message);
-// //   } else {
-// //     console.log("✅ Server is ready to send emails");
-// //   }
-// // });
-
-// // Endpoint to handle email sending
-// app.post('/send-email', async (req, res) => {
-//   const { name, email, message } = req.body;
-
-//   const mailOptions = {
-//     from: process.env.EMAIL_USER, // Sender must be your verified Gmail address
-//     to: process.env.EMAIL_USER,   // Where you want to receive the mail
-//     replyTo: email,               // This allows you to reply directly to the user
-//     subject: `${name} Via Stelynk Contact Form`,
-//     text: `New message from ${name}, via Stelynk contact form (${email}):\n\n${message}`,
-//   };
-
-//   try {
-//     await transporter.sendMail(mailOptions);
-//     console.log("✅ Email sent successfully");
-//     res.status(200).send('Email sent');
-//   } catch (error) {
-//     console.error("❌ Nodemailer Error:", error);
-//     res.status(500).send('Error');
-//   }
-// });
-
-// // Admin only
-// // const supabaseAdmin = require('./config/supabaseAdmin');
-
-// // // Middleware to check if the requester is an admin
-// // const isAdmin = async (req, res, next) => {
-// //   const token = req.headers.authorization?.split(' ')[1];
-// //   if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-// //   // Use the standard client (NOT admin) to verify the user's identity
-// //   const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-  
-// //   if (error || !user || user.app_metadata.role !== 'admin') {
-// //     return res.status(403).json({ error: 'Forbidden: Admins only' });
-// //   }
-// //   next();
-// // };
-
-// // // Admin-only route: Example deleting a user
-// // app.delete('/admin/delete-user/:id', isAdmin, async (req, res) => {
-// //   const { id } = req.params;
-  
-// //   // .auth.admin requires the SERVICE_ROLE_KEY
-// //   const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
-  
-// //   if (error) return res.status(400).json(error);
-// //   res.json({ message: `User ${id} deleted successfully` });
-// // });
-
-
-// app.listen(5000, () => console.log('Server running on port 5000'));
-
-
-
-
-
-
-
-// const { Pool } = require('pg');
-
-// const pool = new Pool({
-//   user: 'postgres',           // Your default username
-//   host: 'localhost',
-//   database: 'pulseevent',     // The name we just created
-//   password: '636996',  // Your DB password
-//   port: 5432,
-// });
-
-// module.exports = pool;
-
-
-// Setup PG Pool connection
-// const pool = new Pool({
-//   user: 'your_db_user',
-//   host: 'localhost',
-//   database: 'your_db_name',
-//   password: 'your_db_password',
-//   port: 5432,
-// });
-
-
-// const express = require('express');
-// const nodemailer = require('nodemailer');
 // const cors = require('cors');
 // const bcrypt = require('bcrypt');
-// const rateLimit = require('express-rate-limit');
-// const { Pool } = require('pg');
-// const config = require('./config');
+// const pool = require('./config/db');
 
 // const app = express();
+
+// // Middleware
 // app.use(cors());
 // app.use(express.json());
 
-// const pool = new Pool(config.db); // Ensure your config has DB credentials
+// // // Google Auth
+// // const jwt = require('jsonwebtoken');
+// // const { OAuth2Client } = require('google-auth-library');
+// // const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// // const JWT_SECRET = process.env.JWT_SECRET;
 
-// const transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: { user: config.email.user, pass: config.email.pass }
-// });
+// // // ==========================================
+// // // 2. JWT AUTHENTICATION MIDDLEWARE
+// // // ==========================================
+// // const verifyToken = (req, res, next) => {
+// //   const token = req.header('Authorization')?.split(' ')[1];
+// //   if (!token) return res.status(401).json({ message: 'Access Denied. No token provided.' });
 
-// // 🛡️ Security: Limit OTP requests to prevent spam
-// const limiter = rateLimit({
-//     windowMs: 15 * 60 * 1000,
-//     max: 5,
-//     message: { error: "Too many attempts. Try again in 15 mins." }
-// });
+// //   try {
+// //     const verified = jwt.verify(token, JWT_SECRET);
+// //     req.user = verified;
+// //     next();
+// //   } catch (error) {
+// //     res.status(403).json({ message: 'Invalid or expired token.' });
+// //   }
+// // };
 
-// // 1. SEND OTP
-// app.post('/api/send-otp', limiter, async (req, res) => {
-//     const { email, firstname } = req.body;
-//     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
-//     const otpHash = await bcrypt.hash(otp, 10);
-//     const expiresAt = new Date(Date.now() + 10 * 60000); // 10 mins
 
-//     try {
-//         await pool.query(`
-//             INSERT INTO temp_registrations (email, otp_hash, expires_at, registration_data)
-//             VALUES ($1, $2, $3, $4)
-//             ON CONFLICT (email) DO UPDATE SET 
-//             otp_hash = $2, expires_at = $3, attempts = 0, registration_data = $4`,
-//             [email, otpHash, expiresAt, JSON.stringify(req.body)]
-//         );
+// // // ==========================================
+// // // 4. GOOGLE AUTHENTICATION ROUTE
+// // // ==========================================
 
-//         await transporter.sendMail({
-//             from: `"Stelynk Security" <${config.email.user}>`,
-//             to: email,
-//             subject: "Your Verification Code",
-//             html: `<div style="padding:20px; border:1px solid #eee;">
-//                     <h2>Code: <span style="color:#2563eb">${otp}</span></h2>
-//                     <p>This code expires in 10 minutes. Do not share it.</p>
-//                    </div>`
-//         });
-//         res.status(200).send('OTP Sent');
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).send('Server Error');
-//     }
-// });
+// // app.post('/api/auth/google', async (req, res) => {
+// //   const { token } = req.body;
 
-// // 2. VERIFY OTP
-// app.post('/api/verify-otp', async (req, res) => {
-//     const { email, otp } = req.body;
-//     try {
-//         const result = await pool.query("SELECT * FROM temp_registrations WHERE email = $1", [email]);
-//         const user = result.rows[0];
+// //   try {
+// //     // 1. Verify token with Google
+// //     const ticket = await googleClient.verifyIdToken({
+// //       idToken: token,
+// //       audience: process.env.GOOGLE_CLIENT_ID,
+// //     });
+    
+// //     const { email, name, picture, sub: googleId } = ticket.getPayload();
 
-//         if (!user || new Date() > user.expires_at) return res.status(400).json({ error: "Expired/Invalid OTP" });
-//         if (user.attempts >= 3) return res.status(429).json({ error: "Account locked. Resend OTP." });
+// //     // 2. Check if user exists in DB
+// //     const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+// //     let user = rows[0];
 
-//         const match = await bcrypt.compare(otp, user.otp_hash);
-//         if (!match) {
-//             await pool.query("UPDATE temp_registrations SET attempts = attempts + 1 WHERE email = $1", [email]);
-//             return res.status(400).json({ error: "Wrong OTP" });
+// //     if (!user) {
+// //       // 3a. New User: Create them as a Google-only account
+// //       const insertQuery = `
+// //         INSERT INTO users (name, email, google_id, profile_picture, auth_providers) 
+// //         VALUES ($1, $2, $3, $4, ARRAY['google']::VARCHAR[]) 
+// //         RETURNING *;
+// //       `;
+// //       const newResult = await pool.query(insertQuery, [name, email, googleId, picture]);
+// //       user = newResult.rows[0];
+// //     } else if (!user.auth_providers.includes('google')) {
+// //       // 3b. Existing User (Local), but logging in with Google for the first time: Link accounts
+// //       const updateQuery = `
+// //         UPDATE users 
+// //         SET google_id = $1, 
+// //             auth_providers = array_append(auth_providers, 'google')
+// //         WHERE id = $2 
+// //         RETURNING *;
+// //       `;
+// //       const updateResult = await pool.query(updateQuery, [googleId, user.id]);
+// //       user = updateResult.rows[0];
+// //     }
+
+// //     // 4. Generate your app's standard JWT
+// //     const appToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    
+// //     res.status(200).json({ 
+// //       message: 'Authentication successful', 
+// //       token: appToken,
+// //       user: { id: user.id, name: user.name, email: user.email, picture: user.profile_picture }
+// //     });
+
+// //   } catch (error) {
+// //     console.error('Google Auth Error:', error);
+// //     res.status(401).json({ message: 'Invalid Google token' });
+// //   }
+// // });
+
+// // // ==========================================
+// // // 5. ACCOUNT LINKING (ADD PASSWORD)
+// // // ==========================================
+
+// // app.post('/api/auth/set-password', verifyToken, async (req, res) => {
+// //   const { newPassword } = req.body;
+// //   const userId = req.user.id;
+
+// //   try {
+// //     const { rows } = await pool.query('SELECT password_hash, auth_providers FROM users WHERE id = $1', [userId]);
+// //     const user = rows[0];
+
+// //     if (!user) return res.status(404).json({ message: 'User not found' });
+
+// //     if (user.auth_providers.includes('local') && user.password_hash) {
+// //       return res.status(400).json({ message: 'Account already has a password.' });
+// //     }
+
+// //     // Hash the password and update the database
+// //     const salt = await bcrypt.genSalt(10);
+// //     const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+// //     const updateQuery = `
+// //       UPDATE users 
+// //       SET password_hash = $1,
+// //           auth_providers = array_append(auth_providers, 'local')
+// //       WHERE id = $2;
+// //     `;
+// //     await pool.query(updateQuery, [hashedPassword, userId]);
+
+// //     res.status(200).json({ message: 'Password added successfully. You can now log in with email/password.' });
+
+// //   } catch (error) {
+// //     console.error('Set Password Error:', error);
+// //     res.status(500).json({ message: 'Server error' });
+// //   }
+// // });
+
+
+// // ====================
+// // SIGNUP ROUTE
+// // ====================
+// app.post('/api/signup', async (req, res) => {
+//   try {
+//     const { firstname, lastname, username, email, password } = req.body;
+
+//     // 1. Check if user already exists
+//     const userCheck = await pool.query(
+//       'SELECT * FROM users WHERE email = $1 OR username = $2', 
+//       [email, username]
+//     );
+
+//   if (userCheck.rows.length > 0) {
+//         // Figure out exactly what was taken to give a helpful error message
+//         const existingUser = userCheck.rows[0];
+//         if (existingUser.email === email) {
+//              res.status(400).json({ message: 'Email already registered.' });
 //         }
-
-//         // Logic to move user.registration_data to your MAIN users table goes here
-//         await pool.query("DELETE FROM temp_registrations WHERE email = $1", [email]);
-//         res.status(200).json({ message: "Verified", data: user.registration_data });
-//     } catch (err) {
-//         res.status(500).json({ error: "Verification failed" });
+//         if (existingUser.username === username) {
+//             return res.status(400).json({ message: 'Username is already taken.' });
+//         }
 //     }
+
+//     // 2. Hash the password securely
+//     const saltRounds = 10;
+//     const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+//     // 3. Insert user into PostgreSQL
+//     const newUser = await pool.query(
+//       'INSERT INTO users (firstname, lastname, username, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, firstname, lastname, username, email, password',
+//       [firstname, lastname, username, email, hashedPassword]
+//     );
+
+//     res.status(201).json({ message: 'User registered successfully!', user: newUser.rows[0] });
+
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(500).json({ error: 'Server error during signup.' });
+//   }
 // });
 
-// app.listen(5000, () => console.log('Server running on port 5000'));
+// // ====================
+// // LOGIN ROUTE
+// // ====================
+// app.post('/api/login', async (req, res) => {
+//   try {
+//     // React will send 'identifier' (which could be the email OR the username)
+//     const { identifier, password } = req.body;
+
+//     // Search for a user where the email matches OR the username matches
+//     const userResult = await pool.query(
+//       'SELECT * FROM users WHERE email = $1 OR username = $2', 
+//       [identifier, identifier]
+//     );
+
+//     if (userResult.rows.length === 0) {
+//       return res.status(400).json({ message: 'Invalid Username/Email or Password.' });
+//     }
+
+//     const user = userResult.rows[0];
+
+//     // Check password
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     if (!isPasswordValid) {
+//       return res.status(400).json({ message: 'Invalid Username/Email or Password.' });
+//     }
+
+//     res.json({ message: 'Login successful!', user: { id: user.id, username: user.username, email: user.email } });
+
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(500).json({ error: 'Server error during login.' });
+//   }
+// });
+
+// // Start Server
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
 
 
 
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const pool = require('./config/db');
+const helmet = require('helmet');
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Allows Express to read JSON data from React
+app.use(express.json());
+app.use(helmet());
 
-// DIAGNOSTIC LOG: Put this right before your routes
-// pool.query("SELECT current_database(), current_schema();")
-//   .then(res => {
-//     console.log(`--- DB DIAGNOSTICS ---`);
-//     console.log(`Connected to Database: ${res.rows[0].current_database}`);
-//     console.log(`Current Schema: ${res.rows[0].current_schema}`);
+// Google Auth Settings
+
+// Inside your login/signup handler
+// const userPayload = { id: user.id }; // This is the data inside the token
+// const secretKey = process.env.JWT_SECRET; // Your private secret
+// const options = { expiresIn: '7d' }; // How long the token lasts
+
+// const token = jwt.sign(userPayload, secretKey, options);
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// ==========================================
+// 2. JWT AUTHENTICATION MIDDLEWARE
+// ==========================================
+const verifyToken = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Access Denied. No token provided.' });
+
+  try {
+    const verified = jwt.verify(token, JWT_SECRET);
+    req.user = verified;
+    next();
+  } catch (error) {
+    res.status(403).json({ message: 'Invalid or expired token.' });
+  }
+};
+
+// ==========================================
+// 4. GOOGLE AUTHENTICATION ROUTE
+// ==========================================
+app.post('/api/auth/google', async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    // 1. Verify token with Google
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
     
-//     // Now let's list all tables in this database
-//     return pool.query(`
-//       SELECT table_name 
-//       FROM information_schema.tables 
-//       WHERE table_schema = 'public';
-//     `);
-//   })
-//   .then(res => {
-//     const tables = res.rows.map(r => r.table_name);
-//     console.log(`Tables found in public schema:`, tables);
-//     console.log(`----------------------`);
-//   })
-//   .catch(err => console.error("Diagnostic failed:", err.message));
+    const { email, name, picture, sub: googleId } = ticket.getPayload();
+    const [firstname, ...lastnameParts] = name.split(' ');
+    const lastname = lastnameParts.join(' ') || '';
+    const generatedUsername = email.split('@')[0] + Math.floor(1000 + Math.random() * 9000);
+
+    // 2. Check if user exists in DB
+    const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let user = rows[0];
+
+    if (!user) {
+      // 3a. New User: Create them as a Google-only account
+      const insertQuery = `
+        INSERT INTO users (firstname, lastname, username, email, google_id, profile_picture, auth_providers) 
+        VALUES ($1, $2, $3, $4, $5, $6, ARRAY['google']::VARCHAR[]) 
+        RETURNING *;
+      `;
+      const newResult = await pool.query(insertQuery, [firstname, lastname, generatedUsername, email, googleId, picture]);
+      user = newResult.rows[0];
+    } else if (!user.auth_providers || !user.auth_providers.includes('google')) {
+      // 3b. Existing User (Local), but logging in with Google for the first time: Link accounts
+      const updateQuery = `
+        UPDATE users 
+        SET google_id = $1, 
+            profile_picture = $2,
+            auth_providers = array_append(COALESCE(auth_providers, ARRAY['local']::VARCHAR[]), 'google')
+        WHERE id = $3 
+        RETURNING *;
+      `;
+      const updateResult = await pool.query(updateQuery, [googleId, picture, user.id]);
+      user = updateResult.rows[0];
+    }
+
+    // 4. Generate your app's standard JWT
+    const appToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    
+    res.status(200).json({ 
+      message: 'Authentication successful', 
+      token: appToken,
+      user: { id: user.id, username: user.username, email: user.email, picture: user.profile_picture }
+    });
+
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    res.status(401).json({ message: 'Invalid Google token' });
+  }
+});
+
+// ==========================================
+// 5. ACCOUNT LINKING (ADD PASSWORD)
+// ==========================================
+app.post('/api/auth/set-password', verifyToken, async (req, res) => {
+  const { newPassword } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const { rows } = await pool.query('SELECT password, auth_providers FROM users WHERE id = $1', [userId]);
+    const user = rows[0];
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.auth_providers && user.auth_providers.includes('local') && user.password) {
+      return res.status(400).json({ message: 'Account already has a password.' });
+    }
+
+    // Hash the password and update the database
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    const updateQuery = `
+      UPDATE users 
+      SET password = $1,
+          auth_providers = array_append(COALESCE(auth_providers, ARRAY['google']::VARCHAR[]), 'local')
+      WHERE id = $2;
+    `;
+    await pool.query(updateQuery, [hashedPassword, userId]);
+
+    res.status(200).json({ message: 'Password added successfully. You can now log in with email/password.' });
+
+  } catch (error) {
+    console.error('Set Password Error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // ====================
 // SIGNUP ROUTE
@@ -243,28 +366,34 @@ app.post('/api/signup', async (req, res) => {
       [email, username]
     );
 
-  if (userCheck.rows.length > 0) {
-        // Figure out exactly what was taken to give a helpful error message
-        const existingUser = userCheck.rows[0];
-        if (existingUser.email === email) {
-             res.status(400).json({ message: 'Email already registered.' });
-        }
-        if (existingUser.username === username) {
-            return res.status(400).json({ message: 'Username is already taken.' });
-        }
+    if (userCheck.rows.length > 0) {
+      const existingUser = userCheck.rows[0];
+      if (existingUser.email === email) {
+        return res.status(400).json({ message: 'Email already registered.' });
+      }
+      if (existingUser.username === username) {
+        return res.status(400).json({ message: 'Username is already taken.' });
+      }
     }
 
     // 2. Hash the password securely
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // 3. Insert user into PostgreSQL
+    // 3. Insert user into PostgreSQL with default provider tracking
     const newUser = await pool.query(
-      'INSERT INTO users (firstname, lastname, username, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, firstname, lastname, username, email, password',
+      "INSERT INTO users (firstname, lastname, username, email, password, auth_providers) VALUES ($1, $2, $3, $4, $5, ARRAY['local']::VARCHAR[]) RETURNING id, firstname, lastname, username, email",
       [firstname, lastname, username, email, hashedPassword]
     );
 
-    res.status(201).json({ message: 'User registered successfully!', user: newUser.rows[0] });
+    // 4. Generate system token
+    const token = jwt.sign({ id: newUser.rows[0].id }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({ 
+      message: 'User registered successfully!', 
+      token,
+      user: newUser.rows[0] 
+    });
 
   } catch (err) {
     console.error(err.message);
@@ -277,7 +406,6 @@ app.post('/api/signup', async (req, res) => {
 // ====================
 app.post('/api/login', async (req, res) => {
   try {
-    // React will send 'identifier' (which could be the email OR the username)
     const { identifier, password } = req.body;
 
     // Search for a user where the email matches OR the username matches
@@ -292,13 +420,25 @@ app.post('/api/login', async (req, res) => {
 
     const user = userResult.rows[0];
 
+    // Explicit verification block if account handles google registration profiles exclusively
+    if (user.auth_providers && !user.auth_providers.includes('local')) {
+      return res.status(400).json({ message: 'This account was created via Google. Please log in using Google Auth.' });
+    }
+
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: 'Invalid Username/Email or Password.' });
     }
 
-    res.json({ message: 'Login successful!', user: { id: user.id, username: user.username, email: user.email } });
+    // Generate system token
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({ 
+      message: 'Login successful!', 
+      token,
+      user: { id: user.id, username: user.username, email: user.email } 
+    });
 
   } catch (err) {
     console.error(err.message);

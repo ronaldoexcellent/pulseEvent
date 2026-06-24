@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from "react-router-dom";
 
 // Components & Layouts
 import AppLayout from "./layout/AppLayout";
@@ -40,6 +40,7 @@ import SupportFeedback from "./page/admin/Support&Feedback";
 import PulseEventPolicy from './page/compliance/privacyPolicy';
 import TermsOfExecution from './page/compliance/TermsofExecution';
 import FraudPrevention from './page/compliance/FraudPrevention';
+import NotFound from './page/NotFound';
 
 // Scroll Restoration Helper
 const ScrollToTop = () => {
@@ -104,7 +105,7 @@ const App = () => {
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
