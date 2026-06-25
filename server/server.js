@@ -269,7 +269,7 @@ app.post('/api/auth/google', async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     
-    const { email, name, picture, sub: googleId } = ticket.getPayload();
+    const { email, name, sub: googleId } = ticket.getPayload();
     const [firstname, ...lastnameParts] = name.split(' ');
     const lastname = lastnameParts.join(' ') || '';
     const generatedUsername = email.split('@')[0] + Math.floor(1000 + Math.random() * 9000);
@@ -281,23 +281,22 @@ app.post('/api/auth/google', async (req, res) => {
     if (!user) {
       // 3a. New User: Create them as a Google-only account
       const insertQuery = `
-        INSERT INTO users (firstname, lastname, username, email, google_id, profile_picture, auth_providers) 
-        VALUES ($1, $2, $3, $4, $5, $6, ARRAY['google']::VARCHAR[]) 
+        INSERT INTO users (firstname, lastname, username, email, google_id, auth_providers) 
+        VALUES ($1, $2, $3, $4, $5, ARRAY['google']::VARCHAR[]) 
         RETURNING *;
       `;
-      const newResult = await pool.query(insertQuery, [firstname, lastname, generatedUsername, email, googleId, picture]);
+      const newResult = await pool.query(insertQuery, [firstname, lastname, generatedUsername, email, googleId]);
       user = newResult.rows[0];
     } else if (!user.auth_providers || !user.auth_providers.includes('google')) {
       // 3b. Existing User (Local), but logging in with Google for the first time: Link accounts
       const updateQuery = `
         UPDATE users 
-        SET google_id = $1, 
-            profile_picture = $2,
-            auth_providers = array_append(COALESCE(auth_providers, ARRAY['local']::VARCHAR[]), 'google')
-        WHERE id = $3 
+        SET google_id = $1,
+          auth_providers = array_append(COALESCE(auth_providers, ARRAY['local']::VARCHAR[]), 'google')
+        WHERE id = $2
         RETURNING *;
       `;
-      const updateResult = await pool.query(updateQuery, [googleId, picture, user.id]);
+      const updateResult = await pool.query(updateQuery, [googleId, user.id]);
       user = updateResult.rows[0];
     }
 
@@ -307,7 +306,7 @@ app.post('/api/auth/google', async (req, res) => {
     res.status(200).json({ 
       message: 'Authentication successful', 
       token: appToken,
-      user: { id: user.id, username: user.username, email: user.email, picture: user.profile_picture }
+      user: { id: user.id, username: user.username, email: user.email }
     });
 
   } catch (error) {
@@ -382,8 +381,7 @@ app.post('/api/signup', async (req, res) => {
 
     // 3. Insert user into PostgreSQL with default provider tracking
     const newUser = await pool.query(
-      "INSERT INTO users (firstname, lastname, username, email, password, auth_providers) VALUES ($1, $2, $3, $4, $5, ARRAY['local']::VARCHAR[]) RETURNING id, firstname, lastname, username, email",
-      [firstname, lastname, username, email, hashedPassword]
+      "INSERT INTO users (firstname, lastname, username, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, firstname, lastname, username, email", [firstname, lastname, username, email, hashedPassword]
     );
 
     // 4. Generate system token
