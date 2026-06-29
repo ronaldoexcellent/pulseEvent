@@ -8,9 +8,9 @@ import ProtectedRoute from "./components/ProtectedRoute"; // Ensure this file ex
 
 // Public Pages
 import LandingPage from './page/landingPage';
-import SignIn from './page/SignIn';
-import SignUp from './page/SignUp';
-import ForgotPassword from "./page/ForgotPassword";
+import SignIn from './auth/SignIn';
+import SignUp from './auth/SignUp';
+import ForgotPassword from "./auth/ForgotPassword";
 import AdminLogin from "./page/admin/AdminLogin"; // Ensure this file exists
 
 // App Pages
@@ -40,7 +40,7 @@ import SupportFeedback from "./page/admin/Support&Feedback";
 import PulseEventPolicy from './page/compliance/privacyPolicy';
 import TermsOfExecution from './page/compliance/TermsofExecution';
 import FraudPrevention from './page/compliance/FraudPrevention';
-import NotFound from './page/NotFound';
+import NotFound from './404/NotFound';
 
 // Scroll Restoration Helper
 const ScrollToTop = () => {

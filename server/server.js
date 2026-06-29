@@ -221,6 +221,7 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const pool = require('./config/db');
 const helmet = require('helmet');
+const nodemailer = require('nodemailer');
 
 const app = express();
 
@@ -229,19 +230,21 @@ app.use(cors());
 app.use(express.json());
 app.use(helmet());
 
-// Google Auth Settings
-
-// Inside your login/signup handler
-// const userPayload = { id: user.id }; // This is the data inside the token
-// const secretKey = process.env.JWT_SECRET; // Your private secret
-// const options = { expiresIn: '7d' }; // How long the token lasts
-
-// const token = jwt.sign(userPayload, secretKey, options);
+// Auth & Token Constants
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Email Transporter Setup
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 // ==========================================
-// 2. JWT AUTHENTICATION MIDDLEWARE
+// 1. JWT AUTHENTICATION MIDDLEWARE
 // ==========================================
 const verifyToken = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
@@ -257,7 +260,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // ==========================================
-// 4. GOOGLE AUTHENTICATION ROUTE
+// 2. GOOGLE AUTHENTICATION ROUTE
 // ==========================================
 app.post('/api/auth/google', async (req, res) => {
   const { token } = req.body;
@@ -279,20 +282,21 @@ app.post('/api/auth/google', async (req, res) => {
     let user = rows[0];
 
     if (!user) {
-      // 3a. New User: Create them as a Google-only account
+      // 3a. New User: Create them as a Google-only account (Automatically Verified)
       const insertQuery = `
-        INSERT INTO users (firstname, lastname, username, email, google_id, auth_providers) 
-        VALUES ($1, $2, $3, $4, $5, ARRAY['google']::VARCHAR[]) 
+        INSERT INTO users (firstname, lastname, username, email, google_id, auth_providers, is_verified) 
+        VALUES ($1, $2, $3, $4, $5, ARRAY['google']::VARCHAR[], TRUE) 
         RETURNING *;
       `;
       const newResult = await pool.query(insertQuery, [firstname, lastname, generatedUsername, email, googleId]);
       user = newResult.rows[0];
     } else if (!user.auth_providers || !user.auth_providers.includes('google')) {
-      // 3b. Existing User (Local), but logging in with Google for the first time: Link accounts
+      // 3b. Existing User: Link Google account and mark as verified (since Google verifies emails)
       const updateQuery = `
         UPDATE users 
         SET google_id = $1,
-          auth_providers = array_append(COALESCE(auth_providers, ARRAY['local']::VARCHAR[]), 'google')
+            is_verified = TRUE,
+            auth_providers = array_append(COALESCE(auth_providers, ARRAY[]::VARCHAR[]), 'google')
         WHERE id = $2
         RETURNING *;
       `;
@@ -316,7 +320,7 @@ app.post('/api/auth/google', async (req, res) => {
 });
 
 // ==========================================
-// 5. ACCOUNT LINKING (ADD PASSWORD)
+// 3. ACCOUNT LINKING (ADD PASSWORD)
 // ==========================================
 app.post('/api/auth/set-password', verifyToken, async (req, res) => {
   const { newPassword } = req.body;
@@ -332,14 +336,13 @@ app.post('/api/auth/set-password', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'Account already has a password.' });
     }
 
-    // Hash the password and update the database
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
     const updateQuery = `
       UPDATE users 
       SET password = $1,
-          auth_providers = array_append(COALESCE(auth_providers, ARRAY['google']::VARCHAR[]), 'local')
+          auth_providers = array_append(COALESCE(auth_providers, ARRAY[]::VARCHAR[]), 'local')
       WHERE id = $2;
     `;
     await pool.query(updateQuery, [hashedPassword, userId]);
@@ -352,14 +355,13 @@ app.post('/api/auth/set-password', verifyToken, async (req, res) => {
   }
 });
 
-// ====================
-// SIGNUP ROUTE
-// ====================
+// ==========================================
+// 4. SIGNUP ROUTE (REQUIRES EMAIL VERIFICATION)
+// ==========================================
 app.post('/api/signup', async (req, res) => {
   try {
     const { firstname, lastname, username, email, password } = req.body;
 
-    // 1. Check if user already exists
     const userCheck = await pool.query(
       'SELECT * FROM users WHERE email = $1 OR username = $2', 
       [email, username]
@@ -367,30 +369,43 @@ app.post('/api/signup', async (req, res) => {
 
     if (userCheck.rows.length > 0) {
       const existingUser = userCheck.rows[0];
-      if (existingUser.email === email) {
-        return res.status(400).json({ message: 'Email already registered.' });
-      }
-      if (existingUser.username === username) {
-        return res.status(400).json({ message: 'Username is already taken.' });
-      }
+      if (existingUser.email === email) return res.status(400).json({ message: 'Email already registered.' });
+      if (existingUser.username === username) return res.status(400).json({ message: 'Username is already taken.' });
     }
 
-    // 2. Hash the password securely
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // 3. Insert user into PostgreSQL with default provider tracking
+    // Insert user (Defaults to FALSE for is_verified, tracked as 'local')
     const newUser = await pool.query(
-      "INSERT INTO users (firstname, lastname, username, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, firstname, lastname, username, email", [firstname, lastname, username, email, hashedPassword]
+      `INSERT INTO users (firstname, lastname, username, email, password, auth_providers, is_verified) 
+       VALUES ($1, $2, $3, $4, $5, ARRAY['local']::VARCHAR[], FALSE) 
+       RETURNING id, firstname, lastname, username, email`, 
+       [firstname, lastname, username, email, hashedPassword]
     );
 
-    // 4. Generate system token
-    const token = jwt.sign({ id: newUser.rows[0].id }, JWT_SECRET, { expiresIn: '7d' });
+    const user = newUser.rows[0];
 
+    // Generate short-lived Verification Token (1 hour)
+    const verificationToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+    // Send the email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Verify your account - Pulse-Event',
+      html: `
+        <h2>Welcome to Our App, ${firstname}!</h2>
+        <p>Please verify your email address by clicking the link below:</p>
+        <a href="${verificationLink}" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Verify Email</a>
+        <p>This link will expire in 1 hour.</p>
+      `
+    });
+
+    // Notice we do NOT send the standard login token here!
     res.status(201).json({ 
-      message: 'User registered successfully!', 
-      token,
-      user: newUser.rows[0] 
+      message: 'Registration successful! Please check your email to verify your account before logging in.'
     });
 
   } catch (err) {
@@ -399,14 +414,44 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// ====================
-// LOGIN ROUTE
-// ====================
+// ==========================================
+// 5. VERIFY EMAIL ROUTE
+// ==========================================
+app.post('/api/verify-email', async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) return res.status(400).json({ message: 'Missing verification token.' });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    const updateQuery = `
+      UPDATE users 
+      SET is_verified = TRUE 
+      WHERE id = $1 AND is_verified = FALSE 
+      RETURNING id;
+    `;
+    const result = await pool.query(updateQuery, [decoded.id]);
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ message: 'User already verified or not found.' });
+    }
+
+    res.status(200).json({ message: 'Email verified successfully! You can now log in.' });
+
+  } catch (error) {
+    console.error('Verification Error:', error);
+    res.status(400).json({ message: 'Invalid or expired verification link.' });
+  }
+});
+
+// ==========================================
+// 6. LOGIN ROUTE
+// ==========================================
 app.post('/api/login', async (req, res) => {
   try {
     const { identifier, password } = req.body;
 
-    // Search for a user where the email matches OR the username matches
     const userResult = await pool.query(
       'SELECT * FROM users WHERE email = $1 OR username = $2', 
       [identifier, identifier]
@@ -418,9 +463,14 @@ app.post('/api/login', async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Explicit verification block if account handles google registration profiles exclusively
+    // Enforce Google-only accounts
     if (user.auth_providers && !user.auth_providers.includes('local')) {
       return res.status(400).json({ message: 'This account was created via Google. Please log in using Google Auth.' });
+    }
+
+    // Enforce Email Verification
+    if (!user.is_verified) {
+      return res.status(403).json({ message: 'Please verify your email address before logging in.' });
     }
 
     // Check password
@@ -429,7 +479,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid Username/Email or Password.' });
     }
 
-    // Generate system token
+    // Generate standard auth token
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
 
     res.json({ 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { toast, Toaster } from 'react-hot-toast'; // Assuming you use react-hot-toast
+import { toast, Toaster } from 'react-hot-toast'; 
 import { motion } from 'framer-motion';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
@@ -54,7 +54,7 @@ export default function SignUp() {
   };
   
   const [formData, setFormData] = useState(initialFormState);
-  const [formErrors, setFormErrors] = useState({}); // New state for field errors
+  const [formErrors, setFormErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [err, setErr] = useState(false);
@@ -64,7 +64,6 @@ export default function SignUp() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     
-    // Clear the specific field error when the user starts typing again
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: null }));
     }
@@ -76,10 +75,9 @@ export default function SignUp() {
     setErr(false);
     setMessage('');
 
-    // 3. Run Validation
+    // Run Validation
     const errors = validateForm(formData, validationRules);
 
-    // If there are errors, stop submission
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       toast.error('Please fix the errors in the form.');
@@ -103,15 +101,16 @@ export default function SignUp() {
       setIsLoading(false);
 
       if (response.status === 201) {
-        setMessage('Signup successful!');
-        toast.success('Signup successful!');
+        // Use the specific message from backend prompting them to check their email
+        const successMsg = response.data.message || 'Signup successful! Please check your email.';
+        setMessage(successMsg);
+        toast.success(successMsg, { duration: 6000 }); // Longer duration so they read it
         setErr(false);
         setFormData(initialFormState);
         setFormErrors({});
         
-        if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
-        }
+        // Note: We DO NOT set the token in localStorage here anymore
+        // because the user must verify their email and then log in manually.
       }
 
     } catch (error) {
@@ -150,7 +149,11 @@ export default function SignUp() {
         toast.success('Google login successful!');
         setErr(false);
         
+        // Google auth is auto-verified, so we save the token
         localStorage.setItem('token', data.token);
+        
+        // OPTIONAL: Redirect the user to your dashboard here
+        // window.location.href = '/dashboard';
       } else {
         setMessage(data.message || 'Google Auth Failed.');
         toast.error(data.message || 'Google Auth Failed.');
@@ -165,7 +168,6 @@ export default function SignUp() {
     }
   };
 
-  // Helper function to dynamically set input border classes based on error state
   const getInputClasses = (fieldName) => {
     const baseClasses = "w-full bg-pulse-bg-light border text-sm font-medium px-4 py-3 rounded-xl focus:outline-none focus:ring-2 transition-all placeholder:text-gray-400 disabled:opacity-60";
     return formErrors[fieldName] 
