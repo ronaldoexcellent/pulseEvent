@@ -1,4 +1,4 @@
-import { Feature } from "framer-motion"
+// import { Feature } from "framer-motion"
 import Navbar from "../components/Navbar"
 import Hero from "../components/sections/Hero"
 import ProductModules from "../components/sections/ProductModule"
@@ -7,16 +7,15 @@ import ConversionZone from "../components/sections/ConversionZone"
 import Footer from "../components/Footer"
 
 
-
 const LandingPage = () => {
   return (
     <main>
-   <Navbar/>
-   <Hero/>
-   <ProductModules/>
-   <MetricsDashboard/>
-   <ConversionZone/>
-   <Footer/>
+      <Navbar/>
+      <Hero/>
+      <ProductModules/>
+      <MetricsDashboard/>
+      <ConversionZone/>
+      <Footer/>
     </main>
   )
 }

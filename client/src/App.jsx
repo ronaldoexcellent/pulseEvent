@@ -4,14 +4,16 @@ import { Routes, Route, useLocation } from "react-router-dom";
 // Components & Layouts
 import AppLayout from "./layout/AppLayout";
 import AdminLayout from "./layout/AdminLayout";
-import ProtectedRoute from "./components/ProtectedRoute"; // Ensure this file exists
+import ProtectedRoute from "./components/ProtectedRoute"; 
+import ProtectedRoute from "./auth/ProtectedRoute"; 
 
 // Public Pages
 import LandingPage from './page/landingPage';
 import SignIn from './auth/SignIn';
 import SignUp from './auth/SignUp';
 import ForgotPassword from "./auth/ForgotPassword";
-import AdminLogin from "./page/admin/AdminLogin"; // Ensure this file exists
+import AdminLogin from "./page/admin/AdminLogin"; 
+import VerifyEmail from './auth/VerifyEmail'; 
 
 // App Pages
 import BrowseEvents from "./page/BrowseEvents";
@@ -28,6 +30,7 @@ import ProfilePage from "./page/ProfilePage";
 import SupportPage from "./page/SupportPage";
 import FeedbackPage from "./page/FeedbackPage";
 import Notifications from './page/Notifications';
+import DashboardPage from './page/DashboardPage';
 
 // Admin Pages
 import AdminOverviewPage from "./page/admin/OverviewPage";
@@ -65,23 +68,29 @@ const App = () => {
         <Route path="/privacy" element={<PulseEventPolicy />} /> 
         <Route path="/terms" element={<TermsOfExecution />} /> 
         <Route path="/security" element={<FraudPrevention />} /> 
+        <Route path="/verify-email" element={<VerifyEmail />} /> 
         
-        {/* Protected Core App Layout Cluster */}
-        <Route element={<AppLayout />}>
-          <Route path="/browse" element={<BrowseEvents />} />
-          <Route path="/create-event-ticket" element={<CreateOpportunity />} />
-          <Route path="/create-campaign" element={<CreateDonation />} />
-          <Route path="/available-tickets" element={<AvailableTicketsPage />} />
-          <Route path="/scan-ticket" element={<ScanTicketPage />} />
-          <Route path="/ticket-code" element={<TicketCodePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/available-donations" element={<AvailableDonationsPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/feedback" element={<FeedbackPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/notification" element={<Notifications />} />
-          <Route path="/explore/events/:routeId" element={<DetailHub routeType="events" />} />
-          <Route path="/explore/donations/:routeId" element={<DonationDetailHub />} />
+        {/* ========================================================= */}
+        {/* UPDATED: Protected Core App Layout Cluster */}
+        {/* ========================================================= */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<DashboardPage /> } />
+            <Route path="/browse" element={<BrowseEvents />} />
+            <Route path="/create-event-ticket" element={<CreateOpportunity />} />
+            <Route path="/create-campaign" element={<CreateDonation />} />
+            <Route path="/available-tickets" element={<AvailableTicketsPage />} />
+            <Route path="/scan-ticket" element={<ScanTicketPage />} />
+            <Route path="/ticket-code" element={<TicketCodePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/available-donations" element={<AvailableDonationsPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/notification" element={<Notifications />} />
+            <Route path="/explore/events/:routeId" element={<DetailHub routeType="events" />} />
+            <Route path="/explore/donations/:routeId" element={<DonationDetailHub />} />
+          </Route>
         </Route>
 
         {/* Admin Portal Cluster */}

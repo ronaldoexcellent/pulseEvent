@@ -11,8 +11,6 @@ export default function ProfilePage() {
     email: 'jane.doe@example.com',
     role: 'Event Organizer & Creator',
     joinDate: 'March 2026',
-    balance: 4250.75,
-    totalEarned: 12400.00,
   });
 
   const [transactions] = useState([
@@ -44,10 +42,8 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column: Profile & Wallet */}
-          <div className="lg:col-span-1 flex flex-col gap-8">
-            
-            {/* Profile Card */}
+          {/* Left Column: Profile */}
+          <div className="lg:col-span-1">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -151,7 +147,7 @@ export default function ProfilePage() {
               <div className="flex justify-between items-end mb-8">
                 <div>
                   <h3 className="text-xl font-black text-gray-950 tracking-tight">Recent Activity</h3>
-                  <p className="text-sm text-gray-500 font-medium mt-1">Your latest transactions and payouts.</p>
+                  <p className="text-sm text-gray-500 font-medium mt-1">Your latest transaction history.</p>
                 </div>
                 {!isLoading && (
                   <button className="text-xs font-bold text-[#5a1fb5] uppercase tracking-widest hover:text-[#f2378f] transition-colors">
@@ -212,7 +208,7 @@ export default function ProfilePage() {
               </div>
             </motion.div>
             
-            {/* Help & Support / Feedback Section */}
+            {/* Support Links */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -264,10 +260,8 @@ export default function ProfilePage() {
                 </>
               )}
             </motion.div>
-
           </div>
         </div>
-        
       </div>
     </div>
   );

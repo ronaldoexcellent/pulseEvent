@@ -1,23 +1,25 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from './AuthContext'; // Adjust path
+import { useAuth } from './AuthContext';
 
-export default function ProtectedRoute({ requireChecked = false }) {
-  const { token, user, isLoading } = useAuth();
+const ProtectedRoute = () => {
+  const { user, loading } = useAuth();
 
-  if (isLoading) return <div>Loading...</div>;
-
-  // 1. Check if they are logged in at all
-  if (!token) {
-    return <Navigate to="/signin" replace />;
+  // 1. While checking the backend for the cookie, show a loading spinner
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
   }
 
-  // 2. Check if this specific route requires the 'checked' column to be true
-  // Note: Your backend MUST send { checked: true/false } inside the user object during login!
-  if (requireChecked && user && user.checked !== true) {
-    // Redirect them to an unauthorized page or dashboard
-    return <Navigate to="/pending-approval" replace />;
+  // 2. If no user is logged in, redirect them to the login page
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
-  // If they pass the checks, render the requested page
+  // 3. If logged in, render the child components via <Outlet />
   return <Outlet />;
-}
+};
+
+export default ProtectedRoute;

@@ -6,17 +6,32 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Balance State
-  const [showBalance, setShowBalance] = useState(false);
-  const mockBalance = 4250.75;
-
   // Notification State
   const [hasNotifications, setHasNotifications] = useState(true);
+
+  // Balance
+  const [showBalance, setShowBalance] = useState(false);
 
   // FAB Menu State
   const [showFabMenu, setShowFabMenu] = useState(false);
 
   const navLinks = [
+    { 
+      path: '/dashboard', 
+      label: 'Dashboard', 
+      icon: (
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          strokeWidth={1.5} 
+          stroke="currentColor" 
+          className="w-6 h-6"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5A1.5 1.5 0 014.5 3h5A1.5 1.5 0 0111 4.5v5A1.5 1.5 0 019.5 11h-5A1.5 1.5 0 013 9.5v-5zM13 4.5A1.5 1.5 0 0114.5 3h5A1.5 1.5 0 0121 4.5v10A1.5 1.5 0 0119.5 16h-5a1.5 1.5 0 01-1.5-1.5v-10zM3 14.5A1.5 1.5 0 014.5 13h5a1.5 1.5 0 011.5 1.5v5a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 013 19.5v-5z" />
+      </svg>
+      ) 
+    },
     { 
       path: '/browse', 
       label: 'Discover', 
@@ -66,13 +81,12 @@ export default function AppLayout() {
       ) 
     },
     { 
-      path: '/settings', 
-      label: 'Settings', 
+      path: '/profile', 
+      label: 'Profile', 
       mobileOnly: true,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.43l-1.003.754c-.29.218-.443.576-.408.935.006.063.009.127.009.192 0 .064-.003.128-.009.192-.035.36.118.717.408.935l1.003.754a1.125 1.125 0 0 1 .26 1.43l-1.297 2.247a1.125 1.125 0 0 1-1.37.49l-1.216-.456a1.125 1.125 0 0 0-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281a1.125 1.125 0 0 0-.646-.87a6.512 6.512 0 0 1-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.43l1.003-.754c.29-.218.443-.576.408-.935a6.595 6.595 0 0 1-.009-.384c.035-.36-.118-.717-.408-.935l-1.003-.754a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.49l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128c.332-.183.582-.495.644-.869l.214-1.281Z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
         </svg>
       ) 
     },
@@ -351,9 +365,26 @@ export default function AppLayout() {
 
       {/* --- Main Content Shell --- */}
       <main className="flex-1 w-full pt-[72px] pb-28 md:pt-0 md:pb-0 md:ml-72 min-h-screen relative z-0">
+        
+        {/* Desktop Header */}
+        <header className="hidden md:flex justify-end items-center gap-6 pt-6 pb-2 px-8">
+            <Link to="/notification" className="relative p-2.5 text-gray-400 hover:text-[#5a1fb5] hover:bg-[#5a1fb5]/10 rounded-xl transition-all border border-gray-100 bg-white" title="Notifications">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+              </svg>
+              {hasNotifications && <span className="absolute top-2 right-2 w-2 h-2 bg-[#f2378f] rounded-full"></span>}
+            </Link>
+
+            <Link to="/profile" className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-2xl transition-all cursor-pointer group border border-gray-100 bg-white min-w-[140px]">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#5a1fb5] to-[#f2378f] text-white flex items-center justify-center font-black text-[10px] shrink-0">JD</div>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-xs font-bold text-gray-900 truncate">Jane Doe</span>
+              </div>
+            </Link>
+        </header>
+
         <Outlet />
       </main>
-      
     </div>
   );
 }

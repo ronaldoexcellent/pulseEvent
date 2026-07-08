@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 import LiveDonationNotification from '../components/LiveDonationNotification';
 
 // Mock database representing the campaign context
@@ -193,10 +194,14 @@ export default function DonationDetailHub() {
   return (
     <div className="min-h-screen bg-pulse-bg-light text-pulse-text-dark py-12 px-4 sm:px-6 relative">
       
-      {/* Placed standalone real-time social layer component */}
-      <LiveDonationNotification currency={campaign.currency} />
 
       <div className="max-w-6xl mx-auto space-y-8">
+
+        <div className="mb-6">
+          <a href="/browse" className="text-xs font-black uppercase tracking-wider text-pulse-purple-primary hover:underline">
+            ← Back to Explore
+          </a>
+        </div>
         
         {/* Administrative Workspace Controls */}
         <div className="flex justify-between items-center bg-white border border-gray-200 p-4 rounded-2xl shadow-sm">
@@ -606,3 +611,6 @@ export default function DonationDetailHub() {
     </div>
   );
 }
+
+
+

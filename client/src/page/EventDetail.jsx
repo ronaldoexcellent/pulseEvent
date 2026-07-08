@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 import { itemsMockDatabase } from '../data/exploreData';
 
 // High-contrast cover presets for the donation branch
@@ -129,7 +130,7 @@ export default function DetailHub({ routeType = 'events', routeId = 'lagos-tech-
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <a href="/browse" className="text-xs font-black uppercase tracking-wider text-pulse-purple-primary hover:underline">
-            ← Return to Discovery Grid
+            ← Back to Explore
           </a>
         </div>
 
