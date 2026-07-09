@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Toaster, toast } from 'react-hot-toast';
+import { useAuth } from '../auth/AuthProvider';
 
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const { setUser, user } = useAuth();
+
+  // useEffect(() => {
+  //   if (user) {
+  //     toast.success(`Welcome, ${user.username}!`);
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    if (user) {
+      toast.success(`Welcome, ${user.firstname}!`, {
+        id: 'welcome-toast' // This forces the library to only show it once
+      });
+    }
+  }, [user]);
+
   // Notification State
   const [hasNotifications, setHasNotifications] = useState(true);
 
@@ -92,9 +109,29 @@ export default function AppLayout() {
     },
   ];
 
+  const handleLogout = async () => {
+    try {
+      // 1. Tell backend to clear the HttpOnly cookie
+      await axios.post(`${import.meta.env.VITE_BASE_URL}/api/logout`, {}, {
+        withCredentials: true // Required to send the cookie for deletion
+      });
+
+      // 2. Clear local React state
+      setUser(null); 
+
+      // 3. Notify user and redirect
+      toast.success('Logged out successfully');
+      navigate('/signin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      toast.error('Failed to logout. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7fa] text-gray-800 font-sans selection:bg-[#5a1fb5]/30 flex flex-col md:flex-row">
-      
+      <Toaster />
+
       {/* --- Mobile Top Navbar --- */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-[72px] bg-white/80 backdrop-blur-xl border-b border-gray-200/60 z-50 flex items-center justify-between px-6">
         <a href="/" className="flex items-center">
@@ -249,7 +286,7 @@ export default function AppLayout() {
             </div>
 
             {/* Exit Button */}
-            <button 
+            {/* <button 
               onClick={() => navigate('/signin')}
               className="group flex items-center gap-3 w-full px-4 py-3.5 bg-gray-900 hover:bg-[#5a1fb5] text-white text-xs font-black rounded-2xl transition-all shadow-md shadow-gray-900/10 hover:shadow-lg hover:-translate-y-0.5"
             >
@@ -257,6 +294,12 @@ export default function AppLayout() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
               </svg>
               <span>Exit Node</span>
+            </button> */}
+            <button 
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+            >
+              Logout
             </button>
           </div>
         </div>

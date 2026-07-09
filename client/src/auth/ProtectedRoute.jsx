@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useAuth } from './AuthProvider';
+import toast from 'react-hot-toast';
 
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
@@ -15,7 +16,8 @@ const ProtectedRoute = () => {
 
   // 2. If no user is logged in, redirect them to the login page
   if (!user) {
-    return <Navigate to="/login" replace />;
+    toast.error('You must login first');
+    return <Navigate to="/signin" replace />;
   }
 
   // 3. If logged in, render the child components via <Outlet />

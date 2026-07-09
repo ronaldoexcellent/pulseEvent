@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   // State
   const [balance, setBalance] = useState(4250.75);
@@ -39,8 +41,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-             <h1 className="text-4xl font-black tracking-tighter">User <span className="text-transparent bg-clip-text bg-pulse-gradient">Dashboard.</span></h1>
-            <p className="text-gray-500 font-medium mt-1">Welcome back, Jane. Here is your platform overview.</p>
+             <h1 className="text-4xl font-black tracking-tighter">Your <span className="text-transparent bg-clip-text bg-pulse-gradient">Dashboard.</span></h1>
+            <p className="text-gray-500 font-medium mt-1">Welcome back, {user.firstname}. Here is your platform overview.</p>
           </div>
           <div className="flex gap-3">
              <Link to="/create-event-ticket" className="px-5 py-3 bg-[#5a1fb5] hover:bg-[#4a1998] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-[#5a1fb5]/20">

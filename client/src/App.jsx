@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, BrowserRouter } from "react-router-dom";
 
 // Components & Layouts
 import AppLayout from "./layout/AppLayout";
 import AdminLayout from "./layout/AdminLayout";
-import ProtectedRoute from "./components/ProtectedRoute"; 
+import AdminProtected from "./components/ProtectedRoute"; 
 import ProtectedRoute from "./auth/ProtectedRoute"; 
 
 // Public Pages
@@ -12,8 +12,7 @@ import LandingPage from './page/landingPage';
 import SignIn from './auth/SignIn';
 import SignUp from './auth/SignUp';
 import ForgotPassword from "./auth/ForgotPassword";
-import AdminLogin from "./page/admin/AdminLogin"; 
-import VerifyEmail from './auth/VerifyEmail'; 
+import AdminLogin from "./page/admin/AdminLogin";
 
 // App Pages
 import BrowseEvents from "./page/BrowseEvents";
@@ -44,6 +43,7 @@ import PulseEventPolicy from './page/compliance/privacyPolicy';
 import TermsOfExecution from './page/compliance/TermsofExecution';
 import FraudPrevention from './page/compliance/FraudPrevention';
 import NotFound from './404/NotFound';
+import { AuthProvider } from './auth/AuthProvider';
 
 // Scroll Restoration Helper
 const ScrollToTop = () => {
@@ -59,63 +59,64 @@ const App = () => {
     <div>
       <ScrollToTop />
       
-      <Routes>
-        {/* Isolated Public Corridor */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/forgot" element={<ForgotPassword />} />
-        <Route path="/privacy" element={<PulseEventPolicy />} /> 
-        <Route path="/terms" element={<TermsOfExecution />} /> 
-        <Route path="/security" element={<FraudPrevention />} /> 
-        <Route path="/verify-email" element={<VerifyEmail />} /> 
-        
-        {/* ========================================================= */}
-        {/* UPDATED: Protected Core App Layout Cluster */}
-        {/* ========================================================= */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<DashboardPage /> } />
-            <Route path="/browse" element={<BrowseEvents />} />
-            <Route path="/create-event-ticket" element={<CreateOpportunity />} />
-            <Route path="/create-campaign" element={<CreateDonation />} />
-            <Route path="/available-tickets" element={<AvailableTicketsPage />} />
-            <Route path="/scan-ticket" element={<ScanTicketPage />} />
-            <Route path="/ticket-code" element={<TicketCodePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/available-donations" element={<AvailableDonationsPage />} />
-            <Route path="/support" element={<SupportPage />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/notification" element={<Notifications />} />
-            <Route path="/explore/events/:routeId" element={<DetailHub routeType="events" />} />
-            <Route path="/explore/donations/:routeId" element={<DonationDetailHub />} />
+      <AuthProvider>
+        <Routes>
+          {/* Isolated Public Corridor */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot" element={<ForgotPassword />} />
+          <Route path="/privacy" element={<PulseEventPolicy />} /> 
+          <Route path="/terms" element={<TermsOfExecution />} /> 
+          <Route path="/security" element={<FraudPrevention />} />
+          
+          {/* ========================================================= */}
+          {/* UPDATED: Protected Core App Layout Cluster */}
+          {/* ========================================================= */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<DashboardPage /> } />
+              <Route path="/browse" element={<BrowseEvents />} />
+              <Route path="/create-event-ticket" element={<CreateOpportunity />} />
+              <Route path="/create-campaign" element={<CreateDonation />} />
+              <Route path="/available-tickets" element={<AvailableTicketsPage />} />
+              <Route path="/scan-ticket" element={<ScanTicketPage />} />
+              <Route path="/ticket-code" element={<TicketCodePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/available-donations" element={<AvailableDonationsPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/notification" element={<Notifications />} />
+              <Route path="/explore/events/:routeId" element={<DetailHub routeType="events" />} />
+              <Route path="/explore/donations/:routeId" element={<DonationDetailHub />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Admin Portal Cluster */}
-        {/* 1. Public Login Route */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+          {/* Admin Portal Cluster */}
+          {/* 1. Public Login Route */}
+          <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* 2. Protected Admin Routes */}
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<AdminOverviewPage />} />
-          <Route path="users" element={<AdminUsersPage />} />
-          <Route path="content" element={<AdminContentPage />} />
-          <Route path="financials" element={<AdminFinancialsPage />} />
-          <Route path="support" element={<SupportFeedback />} />
-        </Route>
+          {/* 2. Protected Admin Routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <AdminProtected>
+                <AdminLayout />
+              </AdminProtected>
+            }
+          >
+            <Route index element={<AdminOverviewPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="content" element={<AdminContentPage />} />
+            <Route path="financials" element={<AdminFinancialsPage />} />
+            <Route path="support" element={<SupportFeedback />} />
+          </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Fallback */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
     </div>
   );
 };

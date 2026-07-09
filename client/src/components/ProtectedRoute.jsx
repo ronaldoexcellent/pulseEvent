@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 
-export default function ProtectedRoute({ children }) {
+export default function AdminProtected({ children }) {
   // We use localStorage as a "mock" session for your frontend prototype.
   // When your backend dev arrives, they will replace this with a real token check.
   const isAuthenticated = localStorage.getItem('isAdminAuthenticated');

@@ -11,7 +11,9 @@ export const AuthProvider = ({ children }) => {
     const checkAuthStatus = async () => {
       try {
         // Call a backend endpoint (e.g., GET /api/me) that verifies the HttpOnly cookie
-        const response = await axios.get('http://localhost:5000/api/me');
+        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/me`, {
+            withCredentials: true
+        });
         setUser(response.data.user); // Store user details (id, username) in memory
       } catch (error) {
         setUser(null); // Cookie is invalid or missing

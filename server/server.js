@@ -8,15 +8,18 @@ const pool = require('./config/db');
 const helmet = require('helmet');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-import cookieParser from 'cookie-parser';
+const cookieParser = require('cookie-parser');
+const { requireAuth } = require('./middleware/authMiddleware');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL, // Matches your frontend URL exactly
+  credentials: true, // This MUST be true to allow cookies
+}));
 app.use(express.json());
 app.use(helmet());
-
 app.use(cookieParser()); // Required to read cookies in incoming requests
 
 // Auth & Token Constants
@@ -32,25 +35,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ==========================================
-// 1. JWT AUTHENTICATION MIDDLEWARE
-// ==========================================
-const verifyToken = (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Access Denied. No token provided.' });
-
-  try {
-    const verified = jwt.verify(token, JWT_SECRET);
-    req.user = verified;
-    next();
-  } catch (error) {
-    res.status(403).json({ message: 'Invalid or expired token.' });
-  }
-};
-
-// ==========================================
-// 2. GOOGLE AUTHENTICATION ROUTE
-// ==========================================
 app.post('/api/auth/google', async (req, res) => {
   const { token } = req.body;
 
@@ -94,11 +78,21 @@ app.post('/api/auth/google', async (req, res) => {
     }
 
     // 4. Generate your app's standard JWT
-    const appToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const appToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
+    // ==========================================
+    // NEW: SECURE AUTHENTICATION (Set HttpOnly Cookie)
+    // ==========================================
+    res.cookie('token', appToken, {
+      httpOnly: true, // Prevents XSS attacks
+      secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
+      sameSite: 'strict', // Prevents CSRF attacks
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+    });
+    
+    // 5. Return success without the token in the JSON payload
     res.status(200).json({ 
       message: 'Authentication successful', 
-      token: appToken,
       user: { id: user.id, username: user.username, email: user.email }
     });
 
@@ -108,201 +102,6 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-// ==========================================
-// 3. ACCOUNT LINKING (ADD PASSWORD)
-// ==========================================
-app.post('/api/auth/set-password', verifyToken, async (req, res) => {
-  const { newPassword } = req.body;
-  const userId = req.user.id;
-
-  try {
-    const { rows } = await pool.query('SELECT password, auth_providers FROM users WHERE id = $1', [userId]);
-    const user = rows[0];
-
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    if (user.auth_providers && user.auth_providers.includes('local') && user.password) {
-      return res.status(400).json({ message: 'Account already has a password.' });
-    }
-
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-    const updateQuery = `
-      UPDATE users 
-      SET password = $1,
-<<<<<<< HEAD
-          auth_providers = array_append(COALESCE(auth_providers, ARRAY['google']::VARCHAR[]), 'local')
-=======
-          auth_providers = array_append(COALESCE(auth_providers, ARRAY[]::VARCHAR[]), 'local')
->>>>>>> cb31904d2f10998f16d05772583d6449cd51f100
-      WHERE id = $2;
-    `;
-    await pool.query(updateQuery, [hashedPassword, userId]);
-
-    res.status(200).json({ message: 'Password added successfully. You can now log in with email/password.' });
-
-  } catch (error) {
-    console.error('Set Password Error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Make sure you have 'crypto' required at the top if you want more secure random numbers, 
-// or Math.random() works fine for a basic 6-digit OTP.
-
-// ==========================================
-// 4. SIGNUP ROUTE (Generates OTP, doesn't save to DB yet)
-// ==========================================
-// app.post('/api/signup', async (req, res) => {
-//   try {
-//     const { firstname, lastname, username, email, password } = req.body;
-
-//     // 1. Check if user already exists
-//     const userCheck = await pool.query(
-//       'SELECT * FROM users WHERE email = $1 OR username = $2', 
-//       [email, username]
-//     );
-
-//     if (userCheck.rows.length > 0) {
-//       const existingUser = userCheck.rows[0];
-//       if (existingUser.email === email) return res.status(400).json({ message: 'Email already registered.' });
-//       if (existingUser.username === username) return res.status(400).json({ message: 'Username is already taken.' });
-//     }
-
-//     // 2. Hash the password
-//     const saltRounds = 10;
-//     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-//     // 3. SECURITY UPDATE: Generate cryptographically secure OTP
-//     const otp = crypto.randomInt(100000, 1000000).toString();
-
-//     // 4. SECURITY UPDATE: Hash the OTP before saving to DB (Defense in depth)
-//     const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
-
-//     // 5. SECURITY UPDATE: Remove OTP from JWT payload. 
-//     // The JWT now acts ONLY as a secure temporary hold for user details.
-//     const pendingUserToken = jwt.sign(
-//       { firstname, lastname, username, email, hashedPassword }, 
-//       JWT_SECRET, 
-//       { expiresIn: '10' } // Buffer time: Token lasts 15m, but OTP expires in 5m
-//     );
-
-//     // 6. SECURITY UPDATE: Save hashed OTP to PostgreSQL with a 5-min expiration
-//     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
-    
-//     // Clear any existing OTPs for this email to prevent clutter/spam
-//     await pool.query('DELETE FROM otps WHERE email = $1', [email]);
-//     await pool.query(
-//       'INSERT INTO otps (email, otp_hash, expires_at) VALUES ($1, $2, $3)', 
-//       [email, hashedOtp, expiresAt]
-//     );
-
-//     // 7. Send the OTP email (Code remains exactly the same)
-//     await transporter.sendMail({
-//       from: process.env.EMAIL_USER,
-//       to: email,
-//       subject: 'Your Verification Code - Pulse-Event',
-//       html: `
-//         <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
-//           <h2>Welcome to Our App, ${firstname}!</h2>
-//           <p>Your 6-digit verification code is:</p>
-//           <h1 style="font-size: 36px; letter-spacing: 5px; color: #6d28d9; background: #f3f4f6; padding: 15px; border-radius: 8px; display: inline-block;">
-//             ${otp}
-//           </h1>
-//           <p style="color: #444; margin-top: 20px;">Or click this link to verify your email: <a href="${process.env.FRONTEND_URL}/verify-email?token=${otp}">Verify Email</a></p>
-//           <p style="color: #666; margin-top: 20px;">This code will expire in 5 minutes.</p>
-//         </div>
-//       `
-//     });
-
-//     // 8. Respond to frontend
-//     res.status(200).json({ 
-//       message: 'OTP sent to your email. Please enter it to complete registration.',
-//       pendingToken: pendingUserToken 
-//     });
-
-//   } catch (err) {
-//     console.error('Signup Error:', err.message);
-//     res.status(500).json({ error: 'Server error during signup.' });
-//   }
-// });
-
-// // ==========================================
-// // 5. VERIFY EMAIL ROUTE (Validates OTP & Saves to DB)
-// // ==========================================
-// app.post('/api/verify-email', async (req, res) => {
-//   const { otp, pendingToken } = req.body;
-
-//   if (!otp || !pendingToken) {
-//     return res.status(400).json({ message: 'Missing verification code or session token.' });
-//   }
-
-//   try {
-//     // 1. Verify the token and extract user details
-//     const decoded = jwt.verify(pendingToken, JWT_SECRET);
-
-//     // 2. SECURITY UPDATE: Fetch the OTP record from PostgreSQL
-//     const otpRecord = await pool.query('SELECT * FROM otps WHERE email = $1', [decoded.email]);
-
-//     if (otpRecord.rows.length === 0) {
-//       return res.status(400).json({ message: 'No pending verification found or OTP expired.' });
-//     }
-
-//     const dbOtp = otpRecord.rows[0];
-
-//     // 3. SECURITY UPDATE: Enforce strict 5-minute database expiration
-//     if (new Date() > new Date(dbOtp.expires_at)) {
-//       await pool.query('DELETE FROM otps WHERE email = $1', [decoded.email]);
-//       return res.status(400).json({ message: 'Verification code has expired. Please sign up again.' });
-//     }
-
-//     // 4. SECURITY UPDATE: Hash the user input and compare it to the database hash
-//     const inputHashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
-    
-//     if (dbOtp.otp_hash !== inputHashedOtp) {
-//       return res.status(400).json({ message: 'Invalid verification code.' });
-//     }
-
-//     // 5. Check if the username/email was taken during verification
-//     const userCheck = await pool.query(
-//       'SELECT * FROM users WHERE email = $1 OR username = $2', 
-//       [decoded.email, decoded.username]
-//     );
-
-//     if (userCheck.rows.length > 0) {
-//       // Clean up OTP even on failure
-//       await pool.query('DELETE FROM otps WHERE email = $1', [decoded.email]);
-//       return res.status(400).json({ message: 'This email or username was taken during verification. Please sign up again.' });
-//     }
-
-//     // 6. Insert user into the database
-//     const newUser = await pool.query(
-//       `INSERT INTO users (firstname, lastname, username, email, password, auth_providers, is_verified) 
-//        VALUES ($1, $2, $3, $4, $5, ARRAY['local']::VARCHAR[], TRUE) 
-//        RETURNING id, firstname, lastname, username, email`, 
-//        [decoded.firstname, decoded.lastname, decoded.username, decoded.email, decoded.hashedPassword]
-//     );
-
-//     // 7. SECURITY UPDATE: Delete the used OTP so it cannot be reused (Replay Attack Prevention)
-//     await pool.query('DELETE FROM otps WHERE email = $1', [decoded.email]);
-
-//     res.status(201).json({ 
-//       message: 'Account verified and created successfully! You can now log in.' 
-//     });
-
-//   } catch (error) {
-//     console.error('Verification Error:', error);
-//     if (error.name === 'TokenExpiredError') {
-//       return res.status(400).json({ message: 'Your session has timed out. Please sign up again.' });
-//     }
-//     res.status(400).json({ message: 'Invalid verification session.' });
-//   }
-// });
-
-// ==========================================
-// UNIFIED SIGNUP & VERIFY ROUTE
-// ==========================================
 app.post('/api/signup', async (req, res) => {
   const { firstname, lastname, username, email, password, otp } = req.body;
 
@@ -415,9 +214,6 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// ==========================================
-// 6. LOGIN ROUTE
-// ==========================================
 app.post('/api/login', async (req, res) => {
   try {
     const { identifier, password } = req.body;
@@ -438,11 +234,6 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ message: 'This account was created via Google. Please log in using Google Auth.' });
     }
 
-    // Enforce Email Verification
-    if (!user.is_verified) {
-      return res.status(403).json({ message: 'Please verify your email address before logging in.' });
-    }
-
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -453,13 +244,17 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     // ==========================================
-    // NEW: SECURE AUTHENTICATION (Set HttpOnly Cookie)
+    // FIXED: Adjusted Cookie configuration
     // ==========================================
     res.cookie('token', token, {
       httpOnly: true, // Prevents XSS attacks (JS cannot read it)
       secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
-      sameSite: 'strict', // Prevents CSRF attacks
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds (matches token expiry)
+      
+      // FIX: 'strict' breaks local development if frontend/backend are on different ports.
+      // Use 'lax' for local dev, or 'none' if hosted on completely separate production domains.
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', 
+      
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
     });
 
     // Remove the token from the JSON payload so the frontend doesn't need to handle it
@@ -474,20 +269,76 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// ==========================================
-// 7. LOGOUT ROUTE
-// ==========================================
+// A simple profile verification endpoint
+app.get('/api/me', requireAuth, async (req, res) => {
+  try {
+    // req.user was attached by your requireAuth middleware after verifying the JWT
+    const userResult = await pool.query(
+      'SELECT id, firstname, username, email FROM users WHERE id = $1', 
+      [req.user.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User no longer exists.' });
+    }
+
+    res.status(200).json({ user: userResult.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.post('/api/logout', (req, res) => {
-  res.clearCookie('token');
+  // Clearing the cookie with the same options used during creation
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+  
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// import axios from 'axios';
+// import { toast } from 'react-hot-toast';
+// import { useNavigate } from 'react-router-dom';
+// // Import your auth context hook
+// // import { useAuth } from '../context/AuthContext'; 
 
+// const LogoutButton = () => {
+//   const navigate = useNavigate();
+//   // const { setUser } = useAuth(); 
+
+//   const handleLogout = async () => {
+//     try {
+//       // 1. Tell backend to clear the HttpOnly cookie
+//       await axios.post('http://localhost:5000/api/logout', {}, {
+//         withCredentials: true // Required to send the cookie for deletion
+//       });
+
+//       // 2. Clear local React state
+//       // setUser(null); 
+
+//       // 3. Notify user and redirect
+//       toast.success('Logged out successfully');
+//       navigate('/signin');
+//     } catch (error) {
+//       console.error('Logout failed:', error);
+//       toast.error('Failed to logout. Please try again.');
+//     }
+//   };
+
+//   return (
+//     <button 
+//       onClick={handleLogout}
+//       className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+//     >
+//       Logout
+//     </button>
+//   );
+// };
+
+// export default LogoutButton;
 
 // // Middleware to protect routes
 // const requireAuth = (req, res, next) => {
@@ -556,3 +407,9 @@ app.listen(PORT, () => {
 
 // // Now, every request automatically sends the HttpOnly cookie
 // axios.post('https://your-api.com/api/events/create', eventData);
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
