@@ -169,7 +169,7 @@ export default function Navbar({ user = null, onLogout, onSearchSubmit }) {
               </>
             ) : (
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <a href="/login" className="w-full text-center text-pulse-text-dark border border-gray-200 font-bold py-3 rounded-xl" onClick={() => setIsOpen(false)}>Sign In</a>
+                <a href="/signin" className="w-full text-center text-pulse-text-dark border border-gray-200 font-bold py-3 rounded-xl" onClick={() => setIsOpen(false)}>Sign In</a>
                 <a href="/signup" className="w-full text-center bg-pulse-gradient text-white font-bold py-3 rounded-xl" onClick={() => setIsOpen(false)}>Sign Up</a>
               </div>
             )}

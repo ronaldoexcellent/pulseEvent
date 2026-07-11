@@ -1,50 +1,89 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
+import PageLoading from '../components/loaders/pageLoading';
 
 export default function SignIn({ onSignInSuccess }) {
   const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/dashboard";
+  const { setUser, user, loading } = useAuth();
+  // const { user, loading } = useAuth();
+  
+  // FIX: Added optional chaining to prevent crashes, and commented it out 
+  // so it doesn't spam your console on every keystroke!
+  // console.log(location.state?.from?.pathname);
+
+    // 1. Create a ref to track initialization
+  // const isGoogleInitialized = useRef(false);
+
+  // useEffect(() => {
+  //   // 2. Only initialize if it hasn't been done yet
+  //   if (!isGoogleInitialized.current && window.google) {
+  //     window.google.accounts.id.initialize({
+  //       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  //       callback: handleGoogleSuccess,
+  //     });
+      
+  //     // 3. Mark as initialized
+  //     isGoogleInitialized.current = true;
+  //   }
+  // }, []); // Empty dependency array
+
+  // useEffect(() => {
+  //   if (user) setTimeout(() => window.location.replace(from), 100); // Redirect to
+  //   // navigate(from, { replace: true });
+  // }, [user]);
+
+  if (loading) {
+    return <PageLoading />;
+  }
+
+  if (user) {
+    return <Navigate to={from} replace />;
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
- const handleCredentialsSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  const loadtoast = toast.loading('Authenticating...');
+  const handleCredentialsSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const loadtoast = toast.loading('Authenticating...');
 
-  try {
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/login`, {
-      identifier: formData.identifier,
-      password: formData.password
-    }, {
-      withCredentials: true // CRITICAL: Allows the browser to accept and save the HttpOnly cookie
-    });
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/login`, {
+        identifier: formData.identifier,
+        password: formData.password
+      }, {
+        withCredentials: true // CRITICAL: Allows the browser to accept and save the HttpOnly cookie
+      });
 
-    toast.dismiss(loadtoast);
-    setIsLoading(false);
+      toast.dismiss(loadtoast);
+      setIsLoading(false);
 
-    // The try block succeeding means the backend responded with a 2xx status.
-    // The browser has now securely stored the token in the background.
-    toast.success(response.data.message || 'Login successful!');
-    navigate('/dashboard'); // Redirect to dashboard or any protected route
-    // Pass the non-sensitive user profile data (id, username, email) to your state handler
-    if (onSignInSuccess) onSignInSuccess(response.data.user);
-
-  } catch (error) {
-    toast.dismiss(loadtoast);
-    setIsLoading(false);
-    const errorMessage = error.response?.data?.message || 'Login failed.';
-    toast.error(errorMessage);
-  }
-};
+      // The try block succeeding means the backend responded with a 2xx status.
+      // The browser has now securely stored the token in the background.
+      toast.success(response.data.message || 'Login successful!');
+      // navigate(from, { replace: true });
+      window.location.replace(from); // Use replace to avoid back navigation to the login page
+      // Pass the non-sensitive user profile data (id, username, email) to your state handler
+      if (onSignInSuccess) onSignInSuccess(response.data.user);
+    } catch (error) {
+      toast.dismiss(loadtoast);
+      setIsLoading(false);
+      const errorMessage = error.response?.data?.message || 'Login failed.';
+      toast.error(errorMessage);
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     const loadtoast = toast.loading('Connecting to Google...');
@@ -61,6 +100,7 @@ export default function SignIn({ onSignInSuccess }) {
       
       toast.dismiss(loadtoast);
       toast.success('Google login successful!');
+      navigate(from, { replace: true });
 
       // 3. Update UI state with profile data
       if (onSignInSuccess) onSignInSuccess(response.data.user);
@@ -96,7 +136,7 @@ export default function SignIn({ onSignInSuccess }) {
               onError={() => toast.error('Google Login Failed')}
               shape="rectangular"
               theme="outline"
-              width="100%"
+              // width="100%"
             />
           </div>
 
@@ -137,7 +177,7 @@ export default function SignIn({ onSignInSuccess }) {
               whileHover={!isLoading ? { scale: 1.01 } : {}}
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-pulse-gradient text-white font-black text-sm rounded-xl shadow-lg disabled:opacity-60"
+              className="cursor-none w-full py-3.5 bg-pulse-gradient text-white font-black text-sm rounded-xl shadow-lg disabled:opacity-60"
             >
               {isLoading ? 'Verifying...' : 'Login'}
             </motion.button>

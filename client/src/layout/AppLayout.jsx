@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
+import axios from 'axios';
 import { useAuth } from '../auth/AuthProvider';
 
 export default function AppLayout() {
@@ -9,17 +10,13 @@ export default function AppLayout() {
   const location = useLocation();
   const { setUser, user } = useAuth();
 
-  // useEffect(() => {
-  //   if (user) {
-  //     toast.success(`Welcome, ${user.username}!`);
-  //   }
-  // }, []);
-
   useEffect(() => {
     if (user) {
-      toast.success(`Welcome, ${user.firstname}!`, {
-        id: 'welcome-toast' // This forces the library to only show it once
-      });
+      setTimeout(() => {
+        toast.success(`Welcome, ${user.firstname}!`, {
+          id: 'welcome-toast' // This forces the library to only show it once
+        });
+      }, 1000);
     }
   }, [user]);
 
@@ -120,8 +117,9 @@ export default function AppLayout() {
       setUser(null); 
 
       // 3. Notify user and redirect
-      toast.success('Logged out successfully');
-      navigate('/signin');
+      // toast.success('Logged out successfully');
+      navigate('/signin', { replace: true });
+      // window.location.reload(); // This clears all memory leaks/stale states
     } catch (error) {
       console.error('Logout failed:', error);
       toast.error('Failed to logout. Please try again.');
@@ -285,22 +283,21 @@ export default function AppLayout() {
               </Link>
             </div>
 
-            {/* Exit Button */}
-            {/* <button 
-              onClick={() => navigate('/signin')}
-              className="group flex items-center gap-3 w-full px-4 py-3.5 bg-gray-900 hover:bg-[#5a1fb5] text-white text-xs font-black rounded-2xl transition-all shadow-md shadow-gray-900/10 hover:shadow-lg hover:-translate-y-0.5"
+            <button 
+              onClick={handleLogout}
+              className="group flex items-center gap-3 w-full px-4 py-3.5 bg-gray-900 hover:bg-pulse-purple-primary text-white font-black rounded-2xl transition-all shadow-md shadow-gray-900/10 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
               </svg>
-              <span>Exit Node</span>
-            </button> */}
-            <button 
+              <span>Logout</span>
+            </button>
+            {/* <button 
               onClick={handleLogout}
               className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
             >
               Logout
-            </button>
+            </button> */}
           </div>
         </div>
 

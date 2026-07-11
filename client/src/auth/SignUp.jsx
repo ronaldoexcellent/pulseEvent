@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
+import PageLoading from '../components/loaders/pageLoading';
 
 // ==========================================
 // Validation Rules & Logic
@@ -50,6 +52,17 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/dashboard";
+  const { setUser, user, loading } = useAuth();
+
+  if (loading) {
+    return <PageLoading />;
+  }
+
+  if (user) {
+    return <Navigate to={from} replace />;
+  }
 
   // Helper for UI class management
   const getInputClasses = (fieldName) => {
@@ -58,6 +71,22 @@ export default function SignUp() {
       ? `${baseClasses} border-red-500 text-red-900 focus:border-red-500 focus:ring-red-500/10` 
       : `${baseClasses} border-gray-200 text-pulse-text-dark focus:border-pulse-purple-primary focus:ring-pulse-purple-primary/10`;
   };
+
+  // 1. Create a ref to track initialization
+  const isGoogleInitialized = useRef(false);
+  
+  useEffect(() => {
+    // 2. Only initialize if it hasn't been done yet
+    if (!isGoogleInitialized.current && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+      });
+      
+      // 3. Mark as initialized
+      isGoogleInitialized.current = true;
+    }
+  }, []); // Empty dependency array
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -124,7 +153,7 @@ export default function SignUp() {
       // OPTIONAL: If you maintain a user state in an AuthContext, update it here:
       // setUser(response.data.user); 
       
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     } catch (error) {
       const msg = error.response?.data?.message || 'Verification failed.';
       setMessage(msg); // Displays to user

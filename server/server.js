@@ -145,7 +145,7 @@ app.post('/api/signup', async (req, res) => {
         await client.query('BEGIN'); // Start transaction on this specific client
         
         await client.query(
-          'INSERT INTO users (firstname, lastname, username, email, password, auth_providers, is_verified, id_verified) VALUES ($1, $2, $3, $4, $5, "LOCAL", TRUE, FALSE)',
+          'INSERT INTO users (firstname, lastname, username, email, password, auth_providers, is_verified, id_verified) VALUES ($1, $2, $3, $4, $5, ARRAY[\'local\']::VARCHAR[], TRUE, FALSE)',
           [p.firstname, p.lastname, p.username, p.email, p.hashed_password]
         );
         await client.query('DELETE FROM pending_registrations WHERE email = $1', [email]);
@@ -247,13 +247,9 @@ app.post('/api/login', async (req, res) => {
     // FIXED: Adjusted Cookie configuration
     // ==========================================
     res.cookie('token', token, {
-      httpOnly: true, // Prevents XSS attacks (JS cannot read it)
-      secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
-      
-      // FIX: 'strict' breaks local development if frontend/backend are on different ports.
-      // Use 'lax' for local dev, or 'none' if hosted on completely separate production domains.
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', 
-      
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
     });
 
@@ -293,7 +289,7 @@ app.post('/api/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
   });
   
   res.status(200).json({ message: 'Logged out successfully' });
