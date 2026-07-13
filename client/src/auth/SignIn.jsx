@@ -93,7 +93,7 @@ export default function SignIn({ onSignInSuccess }) {
           <div className="text-center mb-8">
             <img src="/pulse-event-logo.png" width={120} height={120} alt="PulseEvent Logo" className="mx-auto" />
             <h2 className="text-xl font-black text-pulse-text-dark tracking-tight mt-3">Welcome To Pulse Event</h2>
-            <p className="text-xs font-medium text-pulse-text-dark/50 mt-1">Please log in.</p>
+            <p className="text-sm font-medium text-pulse-text-dark/50 mt-1">Please log in.</p>
           </div>
 
           <div className="flex justify-center mb-6">
@@ -125,7 +125,7 @@ export default function SignIn({ onSignInSuccess }) {
                 disabled={isLoading}
                 value={formData.identifier}
                 onChange={handleInputChange}
-                className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium px-4 py-3 rounded-xl focus:outline-none transition-all"
+                className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary font-medium px-4 py-3 rounded-xl focus:outline-none transition-all"
               />
             </div>
 
@@ -139,7 +139,7 @@ export default function SignIn({ onSignInSuccess }) {
                   disabled={isLoading}
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary text-sm font-medium px-4 py-3 pr-12 rounded-xl focus:outline-none transition-all"
+                  className="w-full bg-pulse-bg-light border border-gray-200 focus:border-pulse-purple-primary font-medium px-4 py-3 pr-12 rounded-xl focus:outline-none transition-all"
                 />
                 {/* Toggle Button */}
                 <button
@@ -173,7 +173,7 @@ export default function SignIn({ onSignInSuccess }) {
             </motion.button>
           </form>
 
-          <div className="text-center mt-6 pt-5 border-t border-gray-100 text-xs font-semibold text-pulse-text-dark/60">
+          <div className="text-center mt-5 pt-4 border-t border-gray-100 text-sm font-semibold text-pulse-text-dark/60">
             <span>New to pulse-event? </span>
             <a href="/signup" className="text-pulse-purple-primary font-black hover:underline">Register</a>
           </div>

@@ -170,15 +170,15 @@ export default function SignUp({ onSignUpSuccess }) {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-xl bg-white border border-gray-200/80 rounded-3xl p-8 shadow-xl relative z-10 overflow-hidden"
         >
-          <div className="text-center mb-7">
+          <div className="text-center mb-4">
             <a href="/" className="flex items-center gap-0.5 justify-center">
               <img src="/pulse-event-logo.png" width={120} height={120} alt="PulseEvent Logo" />
             </a>
             <h2 className="text-xl font-black text-pulse-text-dark tracking-tight mt-3">
               {step === 1 ? 'Register an account' : 'Verify Your Email'}
             </h2>
-            <p className="text-xs font-medium text-pulse-text-dark/50 mt-1">
-              {step === 1 ? 'Build verified event ticket tiers or deploy social crowdfund vaults.' : 'Enter the 6-digit code sent to your email.'}
+            <p className="text-sm font-medium text-pulse-text-dark/50 mt-1">
+              {step === 1 ? 'Build verified event ticket tiers or open donations.' : 'Enter the 6-digit code sent to your email.'}
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default function SignUp({ onSignUpSuccess }) {
                   {/* useOneTap - GoogleLogin Attribute */}
                 </div>
                 <div className="flex items-center my-6">
-                  <div className="flex-1 h-px bg-gray-200" /><span className="px-3 text-[10px] font-black uppercase tracking-widest text-pulse-text-dark/30">Or Registration</span><div className="flex-1 h-px bg-gray-200" />
+                  <div className="flex-1 h-px bg-gray-200" /><span className="px-3 text-[11px] font-black uppercase tracking-widest text-pulse-text-dark/30"> Or Fill the form </span><div className="flex-1 h-px bg-gray-200" />
                 </div>
                 <form onSubmit={handleRegistrationSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -276,12 +276,12 @@ export default function SignUp({ onSignUpSuccess }) {
                     </div>
                   </div>
                   {message && <p className={`text-center mb-4 text-xs ${err ? 'text-red-500' : 'text-green-500'}`}><strong>{message}</strong></p>}
-                  <button type="submit" disabled={isLoading} className="cursor-none w-full py-3.5 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg shadow-pulse-purple-primary/20">
+                  <button type="submit" disabled={isLoading} className="hover:scale-[1.016] transition duration-200 cursor-none w-full py-3.5 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg shadow-pulse-purple-primary/20">
                     {isLoading ? 'Processing...' : 'Register'}
                   </button>
                 </form>
 
-                <div className="text-center mt-4 pt-5 border-t border-gray-100 text-xs font-semibold text-pulse-text-dark/60">
+                <div className="text-center mt-3 pt-4 border-t border-gray-100 text-sm font-semibold text-pulse-text-dark/60">
                   <span> Already have an account? </span>
                   <a href="/signin" className="text-pulse-purple-primary font-black hover:underline">Sign In</a>
                 </div>

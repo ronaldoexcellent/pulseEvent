@@ -10,6 +10,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const cookieParser = require('cookie-parser');
 const { requireAuth } = require('./middleware/authMiddleware');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(cors({
   origin: process.env.FRONTEND_URL, // Matches your frontend URL exactly
   credentials: true, // This MUST be true to allow cookies
 }));
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(helmet());
 app.use(cookieParser()); // Required to read cookies in incoming requests
@@ -102,7 +104,20 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-app.post('/api/signup', async (req, res) => {
+const signupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 5, 
+  standardHeaders: true, 
+  legacyHeaders: false, 
+  message: { 
+    message: 'Too many signup or verification attempts from this IP. Please try again in 15 minutes.' 
+  },
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json(options.message);
+  }
+});
+
+app.post('/api/signup', signupLimiter, async (req, res) => {
   const { firstname, lastname, username, email, password, otp } = req.body;
 
   try {
@@ -342,66 +357,6 @@ app.post('/api/logout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
-// import axios from 'axios';
-// import { toast } from 'react-hot-toast';
-// import { useNavigate } from 'react-router-dom';
-// // Import your auth context hook
-// // import { useAuth } from '../context/AuthContext'; 
-
-// const LogoutButton = () => {
-//   const navigate = useNavigate();
-//   // const { setUser } = useAuth(); 
-
-//   const handleLogout = async () => {
-//     try {
-//       // 1. Tell backend to clear the HttpOnly cookie
-//       await axios.post('http://localhost:5000/api/logout', {}, {
-//         withCredentials: true // Required to send the cookie for deletion
-//       });
-
-//       // 2. Clear local React state
-//       // setUser(null); 
-
-//       // 3. Notify user and redirect
-//       toast.success('Logged out successfully');
-//       navigate('/signin');
-//     } catch (error) {
-//       console.error('Logout failed:', error);
-//       toast.error('Failed to logout. Please try again.');
-//     }
-//   };
-
-//   return (
-//     <button 
-//       onClick={handleLogout}
-//       className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-//     >
-//       Logout
-//     </button>
-//   );
-// };
-
-// export default LogoutButton;
-
-// // Middleware to protect routes
-// const requireAuth = (req, res, next) => {
-//   const token = req.cookies.token; // Automatically sent by the browser
-
-//   if (!token) {
-//     return res.status(401).json({ error: 'Unauthorized: No token provided' });
-//   }
-
-//   try {
-//     // Verify the token and extract the payload
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-//     // Attach the user ID to the request object for the next function
-//     req.user = decoded; 
-//     next();
-//   } catch (err) {
-//     return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-//   }
-// };
 
 // // Protected Route Example
 // app.post('/api/events/create', requireAuth, async (req, res) => {
