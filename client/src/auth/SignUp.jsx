@@ -7,9 +7,6 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import PageLoading from '../components/loaders/pageLoading';
 
-// ==========================================
-// Validation Rules & Logic
-// ==========================================
 const validationRules = {
   firstname: { required: true, minLength: 2, message: "First name must be at least 2 characters." },
   lastname: { required: true, minLength: 2, message: "Last name must be at least 2 characters." },
@@ -42,7 +39,7 @@ function validateForm(formData, rules) {
   return errors;
 }
 
-export default function SignUp() {
+export default function SignUp({ onSignUpSuccess }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +61,6 @@ export default function SignUp() {
     return <Navigate to={from} replace />;
   }
 
-  // Helper for UI class management
   const getInputClasses = (fieldName) => {
     const baseClasses = "w-full bg-pulse-bg-light border text-sm font-medium px-4 py-3 rounded-xl focus:outline-none focus:ring-2 transition-all placeholder:text-gray-400 disabled:opacity-60";
     return formErrors[fieldName] 
@@ -72,31 +68,12 @@ export default function SignUp() {
       : `${baseClasses} border-gray-200 text-pulse-text-dark focus:border-pulse-purple-primary focus:ring-pulse-purple-primary/10`;
   };
 
-  // 1. Create a ref to track initialization
-  const isGoogleInitialized = useRef(false);
-  
-  useEffect(() => {
-    // 2. Only initialize if it hasn't been done yet
-    if (!isGoogleInitialized.current && window.google) {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse,
-      });
-      
-      // 3. Mark as initialized
-      isGoogleInitialized.current = true;
-    }
-  }, []); // Empty dependency array
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (formErrors[name]) setFormErrors((prev) => ({ ...prev, [name]: null }));
   };
 
-  // ==========================================
-  // HANDLER: Step 1 (Registration)
-  // ==========================================
   const handleRegistrationSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -109,7 +86,7 @@ export default function SignUp() {
       return;
     }
 
-    const loadtoast = toast.loading('Creating account...');
+    const loadtoast = toast.loading('Sending OTP...');
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/signup`, {
@@ -119,7 +96,7 @@ export default function SignUp() {
         email: formData.email,
         password: formData.password
       }, {
-        withCredentials: true // Ensures session initialization can pass cookies if needed
+        withCredentials: true
       });
       toast.success(response.data.message || 'Verification code sent!');
       setStep(2); 
@@ -131,10 +108,6 @@ export default function SignUp() {
     }
   };
 
-  // ==========================================
-  // HANDLER: Step 2 (Verification)
-  // ==========================================
-  // ... inside your handleSubmit functions
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -153,52 +126,34 @@ export default function SignUp() {
       // OPTIONAL: If you maintain a user state in an AuthContext, update it here:
       // setUser(response.data.user); 
       
-      navigate(from, { replace: true });
+      // navigate(from, { replace: true });
+      window.location.replace(from);
+      if (onSignUpSuccess) onSignUpSuccess(response.data.user);
     } catch (error) {
       const msg = error.response?.data?.message || 'Verification failed.';
-      setMessage(msg); // Displays to user
+      setMessage(msg);
       toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ==========================================
-  // HANDLER: Google Auth
-  // ==========================================
   const handleGoogleSuccess = async (credentialResponse) => {
-    const token = credentialResponse.credential;
-    const loadtoast = toast.loading('Processing Google sign in...');
-
+    const loadtoast = toast.loading('Connecting to Google...');
     try {
-      // 1. Send the Google credential to your backend with credentials enabled
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/google`, {
-        token: token
+        token: credentialResponse.credential
       }, {
-        withCredentials: true // CRITICAL: Allows browser to save the HttpOnly cookie
+        withCredentials: true
       });
-
-      const data = response.data; // Axios stores response body in .data
       toast.dismiss(loadtoast);
-      
-      // 2. Success logic (Axios assumes success if no error is thrown)
-      setMessage('Google authentication successful!');
       toast.success('Google login successful!');
-      setErr(false);
-      
-      // Removed localStorage.setItem('token', data.token);
-      // The browser now manages the token automatically via the secure HttpOnly cookie
-      
-      navigate('/dashboard');
-
+      // navigate(from, { replace: true });
+      window.location.replace(from);
+      if (onSignUpSuccess) onSignUpSuccess(response.data.user);
     } catch (error) {
       toast.dismiss(loadtoast);
-      console.error('Error during backend authentication:', error);
-      
-      const errMsg = error.response?.data?.message || 'Server synchronization failed.';
-      setMessage(errMsg);
-      toast.error(errMsg);
-      setErr(true);
+      toast.error(error.response?.data?.message || 'Google Auth failed.');
     }
   };
 
@@ -231,7 +186,8 @@ export default function SignUp() {
             {step === 1 ? (
               <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div className="flex justify-center">
-                  <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => toast.error('Google Sign In Failed')} useOneTap shape="rectangular" theme="outline" />
+                  <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => toast.error('Google Sign In Failed')} shape="circle" theme="outline" />
+                  {/* useOneTap - GoogleLogin Attribute */}
                 </div>
                 <div className="flex items-center my-6">
                   <div className="flex-1 h-px bg-gray-200" /><span className="px-3 text-[10px] font-black uppercase tracking-widest text-pulse-text-dark/30">Or Registration</span><div className="flex-1 h-px bg-gray-200" />
@@ -264,16 +220,21 @@ export default function SignUp() {
                     {formErrors.confirmPassword && <p className="text-red-500 text-[10px] mt-1 font-semibold">{formErrors.confirmPassword}</p>}
                   </div>
                   {message && <p className={`text-center mb-4 text-xs ${err ? 'text-red-500' : 'text-green-500'}`}><strong>{message}</strong></p>}
-                  <button type="submit" disabled={isLoading} className="w-full py-3.5 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg shadow-pulse-purple-primary/20">
+                  <button type="submit" disabled={isLoading} className="cursor-none w-full py-3.5 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg shadow-pulse-purple-primary/20">
                     {isLoading ? 'Processing...' : 'Register'}
                   </button>
                 </form>
+
+                <div className="text-center mt-4 pt-5 border-t border-gray-100 text-xs font-semibold text-pulse-text-dark/60">
+                  <span> Already have an account? </span>
+                  <a href="/signin" className="text-pulse-purple-primary font-black hover:underline">Sign In</a>
+                </div>
               </motion.div>
             ) : (
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <form onSubmit={handleVerifySubmit} className="space-y-6">
                   <input type="text" value={otpInput} onChange={(e) => setOtpInput(e.target.value)} placeholder="000000" className="w-full text-center text-3xl tracking-[0.5em] font-black py-6 bg-pulse-bg-light border border-gray-200 rounded-xl" maxLength={6} required />
-                  <button type="submit" disabled={isLoading} className="w-full py-3.5 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg">
+                  <button type="submit" disabled={isLoading} className="w-full py-3.5 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg cursor-alias">
                     {isLoading ? 'Verifying...' : 'Complete Account'}
                   </button>
                   <button type="button" onClick={() => setStep(1)} className="w-full text-xs font-semibold text-gray-500 hover:text-pulse-purple-primary">

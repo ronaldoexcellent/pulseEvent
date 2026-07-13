@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
@@ -14,33 +14,7 @@ export default function SignIn({ onSignInSuccess }) {
   const location = useLocation();
   const from = location.state?.from?.pathname || "/dashboard";
   const { setUser, user, loading } = useAuth();
-  // const { user, loading } = useAuth();
   
-  // FIX: Added optional chaining to prevent crashes, and commented it out 
-  // so it doesn't spam your console on every keystroke!
-  // console.log(location.state?.from?.pathname);
-
-    // 1. Create a ref to track initialization
-  // const isGoogleInitialized = useRef(false);
-
-  // useEffect(() => {
-  //   // 2. Only initialize if it hasn't been done yet
-  //   if (!isGoogleInitialized.current && window.google) {
-  //     window.google.accounts.id.initialize({
-  //       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-  //       callback: handleGoogleSuccess,
-  //     });
-      
-  //     // 3. Mark as initialized
-  //     isGoogleInitialized.current = true;
-  //   }
-  // }, []); // Empty dependency array
-
-  // useEffect(() => {
-  //   if (user) setTimeout(() => window.location.replace(from), 100); // Redirect to
-  //   // navigate(from, { replace: true });
-  // }, [user]);
-
   if (loading) {
     return <PageLoading />;
   }
@@ -64,18 +38,14 @@ export default function SignIn({ onSignInSuccess }) {
         identifier: formData.identifier,
         password: formData.password
       }, {
-        withCredentials: true // CRITICAL: Allows the browser to accept and save the HttpOnly cookie
+        withCredentials: true
       });
 
       toast.dismiss(loadtoast);
       setIsLoading(false);
-
-      // The try block succeeding means the backend responded with a 2xx status.
-      // The browser has now securely stored the token in the background.
       toast.success(response.data.message || 'Login successful!');
       // navigate(from, { replace: true });
-      window.location.replace(from); // Use replace to avoid back navigation to the login page
-      // Pass the non-sensitive user profile data (id, username, email) to your state handler
+      window.location.replace(from);
       if (onSignInSuccess) onSignInSuccess(response.data.user);
     } catch (error) {
       toast.dismiss(loadtoast);
@@ -88,21 +58,16 @@ export default function SignIn({ onSignInSuccess }) {
   const handleGoogleSuccess = async (credentialResponse) => {
     const loadtoast = toast.loading('Connecting to Google...');
     try {
-      // 1. Send the Google credential to your backend
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/google`, {
         token: credentialResponse.credential
       }, {
-        withCredentials: true // CRITICAL: Captures the HttpOnly cookie set by the server
+        withCredentials: true
       });
-
-      // 2. Remove localStorage references
-      // The token is now managed automatically by the browser via the HttpOnly cookie
-      
       toast.dismiss(loadtoast);
       toast.success('Google login successful!');
-      navigate(from, { replace: true });
+      // navigate(from, { replace: true });
+      window.location.replace(from);
 
-      // 3. Update UI state with profile data
       if (onSignInSuccess) onSignInSuccess(response.data.user);
       
     } catch (error) {
@@ -134,9 +99,12 @@ export default function SignIn({ onSignInSuccess }) {
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => toast.error('Google Login Failed')}
-              shape="rectangular"
+              shape="circle"
               theme="outline"
-              // width="100%"
+              // size="large"
+              // text="signin_with"
+              // logo_alignment="left"
+              // width="250"
             />
           </div>
 

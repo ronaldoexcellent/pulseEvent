@@ -57,8 +57,8 @@ app.post('/api/auth/google', async (req, res) => {
     if (!user) {
       // 3a. New User: Create them as a Google-only account (Automatically Verified)
       const insertQuery = `
-        INSERT INTO users (firstname, lastname, username, email, google_id, auth_providers, is_verified) 
-        VALUES ($1, $2, $3, $4, $5, ARRAY['google']::VARCHAR[], TRUE) 
+        INSERT INTO users (firstname, lastname, username, email, google_id, auth_providers, is_verified, id_verified) 
+        VALUES ($1, $2, $3, $4, $5, ARRAY['google']::VARCHAR[], TRUE, FALSE) 
         RETURNING *;
       `;
       const newResult = await pool.query(insertQuery, [firstname, lastname, generatedUsername, email, googleId]);
@@ -138,19 +138,22 @@ app.post('/api/signup', async (req, res) => {
       }
 
       const p = pendingUser.rows[0];
+      let newUser; // Variable to hold the newly created user data
 
       // 5. Atomic Transaction (CRITICAL FIX: Use dedicated client)
       const client = await pool.connect(); // Get a single, dedicated connection
       try {
         await client.query('BEGIN'); // Start transaction on this specific client
         
-        await client.query(
-          'INSERT INTO users (firstname, lastname, username, email, password, auth_providers, is_verified, id_verified) VALUES ($1, $2, $3, $4, $5, ARRAY[\'local\']::VARCHAR[], TRUE, FALSE)',
+        // FIX: Added 'RETURNING id, username, email' to instantly grab the new user's info
+        const insertResult = await client.query(
+          'INSERT INTO users (firstname, lastname, username, email, password, auth_providers, is_verified, id_verified) VALUES ($1, $2, $3, $4, $5, ARRAY[\'local\']::VARCHAR[], TRUE, FALSE) RETURNING id, firstname, lastname, username, email',
           [p.firstname, p.lastname, p.username, p.email, p.hashed_password]
         );
+        newUser = insertResult.rows[0];
+
         await client.query('DELETE FROM pending_registrations WHERE email = $1', [email]);
         await client.query('DELETE FROM otps WHERE email = $1', [email]);
-        
         await client.query('COMMIT'); // Commit on this specific client
       } catch (txError) {
         await client.query('ROLLBACK'); // Rollback on this specific client if it fails
@@ -159,7 +162,53 @@ app.post('/api/signup', async (req, res) => {
         client.release(); // ALWAYS release the client back to the pool!
       }
 
-      return res.status(200).json({ message: 'Account created successfully!' });
+      try {
+        await transporter.sendMail({
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
+          to: newUser.email,
+          subject: 'Welcome to Pulse-Event! 🎉',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+              <h1 style="color: #6d28d9; text-align: center;">Welcome to Pulse-Event!</h1>
+              <p>Hi ${newUser.firstname},</p>
+              <p>Your account has been successfully verified and created. We are thrilled to have you on board!</p>
+              
+              <h3 style="color: #444; margin-top: 30px;">At Pulse Event, you can;</h3>
+              <ul style="line-height: 1.6; padding-left: 20px;">
+                <li> Create & manage events. </li>
+                <li> Sell tickets </li>
+                <li> Buy tickets </li>
+                <li> Open donations </li>
+                <li> Make donations </li>
+                <li> And withdraw the money to your local bank account. </li>
+              </ul>
+              
+              <p style="margin-top: 30px;">If you ever have any questions, just reply to this email.</p>
+              <p>See you inside,<br><strong style="color: #444;">The Pulse-Event Team</strong></p>
+            </div>
+          `
+        });
+      } catch (emailError) {
+        // We catch this so that if the email fails, it DOES NOT stop the user from logging in.
+        console.error('Welcome email failed to send:', emailError);
+      }
+      
+      // ==========================================
+      // NEW: INSTANT LOGIN AFTER VERIFICATION
+      // ==========================================
+      const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+      });
+
+      return res.status(200).json({ 
+        message: 'Account created successfully!',
+        user: newUser // Pass the user back to the frontend state
+      });
     } 
 
     // ==========================================
@@ -188,7 +237,7 @@ app.post('/api/signup', async (req, res) => {
 
       // 4. Send Email... (nodemailer logic here)
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Your Verification Code - Pulse-Event',
         html: `
@@ -202,13 +251,11 @@ app.post('/api/signup', async (req, res) => {
             <p style="color: #666; margin-top: 20px;">This code will expire in 5 minutes.</p>
           </div>
         `
-      }); // <p style="color: #444; margin-top: 20px;">Or click this link to verify your email: <a href="${process.env.FRONTEND_URL}/verify-email?token=${otp}">Verify Email</a></p>
+      }); 
       
       return res.status(200).json({ message: 'OTP sent to your email.' });
     }
   } catch (err) {
-    // Removed the global `pool.query('ROLLBACK')` from here. 
-    // Transactions are now handled safely in their own localized try/catch blocks.
     res.status(500).json({ message: 'Server error during signup.' });
     console.error('DATABASE ERROR:', err.stack);
   }
