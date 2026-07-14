@@ -163,6 +163,10 @@ export default function SignIn({ onSignInSuccess }) {
               </div>
             </div>
 
+            <div className="text-right border-t border-gray-100 text-sm font-semibold text-pulse-text-dark/60">
+              <a href="/forgotpwd" className="text-pulse-purple-primary font-black hover:underline">Forgot Password?</a>
+            </div>
+
             <motion.button
               whileHover={!isLoading ? { scale: 1.01 } : {}}
               type="submit"
@@ -173,8 +177,8 @@ export default function SignIn({ onSignInSuccess }) {
             </motion.button>
           </form>
 
-          <div className="text-center mt-5 pt-4 border-t border-gray-100 text-sm font-semibold text-pulse-text-dark/60">
-            <span>New to pulse-event? </span>
+          <div className="text-center italic mt-3 pt-3 border-t border-gray-100 text-sm font-semibold text-black">
+            <span> New to pulse-event? </span>
             <a href="/signup" className="text-pulse-purple-primary font-black hover:underline">Register</a>
           </div>
         </motion.div>

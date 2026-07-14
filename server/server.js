@@ -357,6 +357,114 @@ app.post('/api/logout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 3, // Only 3 requests per hour to prevent mail spam
+  message: { message: 'Too many requests. Please try again later.' }
+});
+
+app.post('/api/forgot-password', passwordResetLimiter, async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    const userResult = await pool.query('SELECT id, email FROM users WHERE email = $1', [email]);
+    
+    // Always return success even if user not found to prevent user enumeration
+    if (userResult.rows.length === 0) {
+      return res.status(200).json({ message: 'If this email exists, a reset link has been sent.' });
+    }
+
+    const user = userResult.rows[0];
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+    await pool.query(
+      'INSERT INTO password_resets (email, token_hash, expires_at) VALUES ($1, $2, $3) ON CONFLICT (email) DO UPDATE SET token_hash = $2, expires_at = $3',
+      [user.email, resetTokenHash, expiresAt]
+    );
+
+    const resetUrl = `${process.env.FRONTEND_URL}/resetpwd?token=${resetToken}&email=${user.email}`;
+
+    await transporter.sendMail({
+      from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: 'Password Reset Request',
+      html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. Valid for 1 hour.</p>`
+    });
+
+    res.status(200).json({ message: 'If this email exists, a reset link has been sent.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+
+// Rate limiter for executing the reset to prevent brute-forcing the new password
+const executeResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, 
+  message: { message: 'Too many reset attempts. Please try again later.' }
+});
+
+app.post('/api/reset-password', executeResetLimiter, async (req, res) => {
+  const { email, token, newPassword } = req.body;
+
+  try {
+    // 1. Hash the incoming plain-text token from the URL so it matches the DB
+    const inputTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    // 2. Find the token in the database
+    const resetRecord = await pool.query(
+      'SELECT * FROM password_resets WHERE email = $1 AND token_hash = $2',
+      [email, inputTokenHash]
+    );
+
+    if (resetRecord.rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired reset link.' });
+    }
+
+    const resetData = resetRecord.rows[0];
+
+    // 3. Verify it hasn't expired
+    if (new Date() > new Date(resetData.expires_at)) {
+      await pool.query('DELETE FROM password_resets WHERE email = $1', [email]);
+      return res.status(400).json({ message: 'Reset link has expired. Please request a new one.' });
+    }
+
+    // 4. Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // 5. Atomic Transaction: Update user AND delete the token
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      // Update the user's password
+      await client.query(
+        'UPDATE users SET password = $1 WHERE email = $2',
+        [hashedPassword, email]
+      );
+      
+      // Destroy the token so it can never be used again
+      await client.query('DELETE FROM password_resets WHERE email = $1', [email]);
+      
+      await client.query('COMMIT');
+    } catch (txError) {
+      await client.query('ROLLBACK');
+      throw txError;
+    } finally {
+      client.release();
+    }
+
+    // 6. Return success
+    res.status(200).json({ message: 'Password has been successfully reset. You can now log in.' });
+
+  } catch (err) {
+    console.error('Password reset execution error:', err.stack);
+    res.status(500).json({ message: 'Server error during password reset.' });
+  }
+});
 
 // // Protected Route Example
 // app.post('/api/events/create', requireAuth, async (req, res) => {
@@ -405,6 +513,9 @@ app.post('/api/logout', (req, res) => {
 
 // // Now, every request automatically sends the HttpOnly cookie
 // axios.post('https://your-api.com/api/events/create', eventData);
+
+// Cron Job
+require('./tasks/cleanupTokens');
 
 // Start Server
 const PORT = process.env.PORT || 5000;

@@ -110,7 +110,7 @@ export default function AppLoader({ isLoggingOut = false, onComplete }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        className="text-gray-600 font-medium text-center"
+        className="text-purple-600 font-medium text-center"
       >
         {isLoggingOut ? 'Logging out...' : 'Loading...'}
       </motion.p>

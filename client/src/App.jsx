@@ -12,6 +12,7 @@ import LandingPage from './page/landingPage';
 import SignIn from './auth/SignIn';
 import SignUp from './auth/SignUp';
 import ForgotPassword from "./auth/ForgotPassword";
+import ResetPassword from "./auth/ResetPassword";
 import AdminLogin from "./page/admin/AdminLogin";
 
 // App Pages
@@ -65,7 +66,8 @@ const App = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/forgot" element={<ForgotPassword />} />
+          <Route path="/forgotpwd" element={<ForgotPassword />} />
+          <Route path="/resetpwd" element={<ResetPassword />} />
           <Route path="/privacy" element={<PulseEventPolicy />} /> 
           <Route path="/terms" element={<TermsOfExecution />} /> 
           <Route path="/security" element={<FraudPrevention />} />
