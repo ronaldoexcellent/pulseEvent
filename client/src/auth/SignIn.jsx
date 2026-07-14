@@ -36,7 +36,7 @@ export default function SignIn({ onSignInSuccess }) {
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/login`, {
-        identifier: formData.identifier,
+        identifier: formData.identifier.toLowerCase(),
         password: formData.password
       }, {
         withCredentials: true
@@ -45,6 +45,7 @@ export default function SignIn({ onSignInSuccess }) {
       toast.dismiss(loadtoast);
       setIsLoading(false);
       toast.success(response.data.message || 'Login successful!');
+      setUser(response.data.user);
       // navigate(from, { replace: true });
       window.location.replace(from);
       if (onSignInSuccess) onSignInSuccess(response.data.user);

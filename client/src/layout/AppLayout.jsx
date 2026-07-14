@@ -34,15 +34,15 @@ export default function AppLayout() {
     }
   }, [location.pathname, hasShownLoader, isLoading]);
 
-  useEffect(() => {
-    if (user) {
-      setTimeout(() => {
-        toast.success(`Welcome, ${user.firstname}!`, {
-          id: 'welcome-toast' // This forces the library to only show it once
-        });
-      }, 1000);
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) {
+  //     setTimeout(() => {
+  //       toast.success(`Welcome, ${user.firstname}!`, {
+  //         id: 'welcome-toast' // This forces the library to only show it once
+  //       });
+  //     }, 1000);
+  //   }
+  // }, [user]);
 
   // Notification State
   const [hasNotifications, setHasNotifications] = useState(true);
@@ -138,7 +138,7 @@ export default function AppLayout() {
         await axios.post(`${import.meta.env.VITE_BASE_URL}/api/logout`, {}, {
           withCredentials: true
         });
-      }, 2000);
+      }, 1500);
     } catch (error) {
       console.error('Logout failed:', error);
       toast.error('Failed to logout. Please try again.');
@@ -171,6 +171,7 @@ export default function AppLayout() {
                 } else {
                   setIsLoading(false);
                   setHasShownLoader(true);
+                  toast.success(`Welcome back, ${user.firstname}!`, { duration: 4000 });
                 }
               }} 
             />

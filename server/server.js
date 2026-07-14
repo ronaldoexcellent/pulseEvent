@@ -65,13 +65,42 @@ app.post('/api/auth/google', async (req, res) => {
       `;
       const newResult = await pool.query(insertQuery, [firstname, lastname, generatedUsername, email, googleId]);
       user = newResult.rows[0];
+
+      try {
+        await transporter.sendMail({
+        from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
+          to: user.email,
+          subject: 'Welcome to Pulse-Event! 🎉',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+              <h1 style="color: #6d28d9; text-align: center;">Welcome to Pulse-Event!</h1>
+              <p>Hi ${user.firstname},</p>
+              <p>Your account has been successfully verified and created. We are thrilled to have you on board!</p>
+              
+              <h3 style="color: #444; margin-top: 30px;">At Pulse Event, you can;</h3>
+              <ul style="line-height: 1.6; padding-left: 20px;">
+                <li> Create & manage events. </li>
+                <li> Sell tickets </li>
+                <li> Buy tickets </li>
+                <li> Open donations </li>
+                <li> Make donations </li>
+                <li> And withdraw the money to your local bank account. </li>
+              </ul>
+              
+              <p style="margin-top: 30px;">If you ever have any questions, just reply to this email.</p>
+              <p>See you inside,<br><strong style="color: #444;">The Pulse-Event Team</strong></p>
+            </div>
+          `
+        });
+      } catch (emailError) {
+        // We catch this so that if the email fails, it DOES NOT stop the user from logging in.
+        console.error('Welcome email failed to send:', emailError);
+      }
     } else if (!user.auth_providers || !user.auth_providers.includes('google')) {
-      // 3b. Existing User: Link Google account and mark as verified (since Google verifies emails)
       const updateQuery = `
         UPDATE users 
         SET google_id = $1,
-            is_verified = TRUE,
-            auth_providers = array_append(COALESCE(auth_providers, ARRAY[]::VARCHAR[]), 'google')
+            is_verified = TRUE
         WHERE id = $2
         RETURNING *;
       `;
@@ -110,7 +139,7 @@ const signupLimiter = rateLimit({
   standardHeaders: true, 
   legacyHeaders: false, 
   message: { 
-    message: 'Too many signup or verification attempts from this IP. Please try again in 15 minutes.' 
+    message: 'Too many signup or verification attempts. Please try again in 15 minutes.' 
   },
   handler: (req, res, next, options) => {
     res.status(options.statusCode).json(options.message);
@@ -411,12 +440,12 @@ app.post('/api/reset-password', executeResetLimiter, async (req, res) => {
   const { email, token, newPassword } = req.body;
 
   try {
-    // 1. Hash the incoming plain-text token from the URL so it matches the DB
+    // 1. Hash the incoming token
     const inputTokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     // 2. Find the token in the database
     const resetRecord = await pool.query(
-      'SELECT * FROM password_resets WHERE email = $1 AND token_hash = $2',
+      'SELECT * FROM password_resets WHERE email = LOWER($1) AND token_hash = $2',
       [email, inputTokenHash]
     );
 
@@ -426,42 +455,44 @@ app.post('/api/reset-password', executeResetLimiter, async (req, res) => {
 
     const resetData = resetRecord.rows[0];
 
-    // 3. Verify it hasn't expired
+    // 3. Verify expiration
     if (new Date() > new Date(resetData.expires_at)) {
-      await pool.query('DELETE FROM password_resets WHERE email = $1', [email]);
+      await pool.query('DELETE FROM password_resets WHERE email = LOWER($1)', [email]);
       return res.status(400).json({ message: 'Reset link has expired. Please request a new one.' });
     }
 
-    // 4. Hash the new password
+    // 4. Hash the password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // 5. Atomic Transaction: Update user AND delete the token
+    // 5. Atomic Transaction
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       
       // Update the user's password
-      await client.query(
-        'UPDATE users SET password = $1 WHERE email = $2',
+      const updateResult = await client.query(
+        'UPDATE users SET password = $1, auth_providers = ARRAY[\'local\']::VARCHAR[] WHERE email = LOWER($2)',
         [hashedPassword, email]
       );
       
-      // Destroy the token so it can never be used again
-      await client.query('DELETE FROM password_resets WHERE email = $1', [email]);
+      // CRITICAL: Check if a user was actually found and updated
+      if (updateResult.rowCount === 0) {
+        throw new Error('User record not found in users table.');
+      }
+      
+      // Destroy the token
+      await client.query('DELETE FROM password_resets WHERE email = LOWER($1)', [email]);
       
       await client.query('COMMIT');
+      res.status(200).json({ message: 'Password updated successfully.' });
     } catch (txError) {
       await client.query('ROLLBACK');
       throw txError;
     } finally {
       client.release();
     }
-
-    // 6. Return success
-    res.status(200).json({ message: 'Password has been successfully reset. You can now log in.' });
-
   } catch (err) {
-    console.error('Password reset execution error:', err.stack);
+    console.error('Password reset error:', err.message);
     res.status(500).json({ message: 'Server error during password reset.' });
   }
 });

@@ -93,7 +93,7 @@ export default function SignUp({ onSignUpSuccess }) {
         firstname: formData.firstname,
         lastname: formData.lastname,
         username: formData.username.toLowerCase().trim(),
-        email: formData.email,
+        email: formData.email.toLowerCase(),
         password: formData.password
       }, {
         withCredentials: true
@@ -124,7 +124,7 @@ export default function SignUp({ onSignUpSuccess }) {
       toast.success(response.data.message);
       
       // OPTIONAL: If you maintain a user state in an AuthContext, update it here:
-      // setUser(response.data.user); 
+      setUser(response.data.user); 
       
       // navigate(from, { replace: true });
       window.location.replace(from);
@@ -275,7 +275,7 @@ export default function SignUp({ onSignUpSuccess }) {
                       {formErrors.confirmPassword && <p className="text-red-500 text-[10px] mt-1 font-semibold">{formErrors.confirmPassword}</p>}
                     </div>
                   </div>
-                  {message && <p className={`text-center mb-4 text-xs ${err ? 'text-red-500' : 'text-green-500'}`}><strong>{message}</strong></p>}
+                  {message && <p className={`text-center mb-4 text-xs ${formErrors ? 'text-red-500' : 'text-green-500'}`}><strong>{message}</strong></p>}
                   <button type="submit" disabled={isLoading} className="hover:scale-[1.016] transition duration-200 cursor-none w-full py-3.5 bg-pulse-gradient hover:bg-pulse-gradient-hover text-white font-black text-sm rounded-xl shadow-lg shadow-pulse-purple-primary/20">
                     {isLoading ? 'Processing...' : 'Register'}
                   </button>

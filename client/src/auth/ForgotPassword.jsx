@@ -33,7 +33,7 @@ export default function ForgotPassword() {
     setIsError(false);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/forgot-password`, { email });
+      const res = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/forgot-password`, { email: email.toLowerCase() });
       setStatus(res.data.message);
       setIsSubmitted(true);
     } catch (err) {
@@ -141,14 +141,14 @@ export default function ForgotPassword() {
         ) : (
           <div className="space-y-4 bg-pulse-bg-light border border-gray-100 rounded-2xl p-4 text-center">
             <p className="text-xs font-semibold text-pulse-text-dark/70 leading-relaxed">
-              We have transmitted an atomic reset link matching <span className="text-pulse-purple-primary font-bold">{email}</span>. Valid for 1 hour before token invalidation.
+              We sent a reset link to <span className="text-pulse-purple-primary font-bold">{email.toLowerCase()}</span>. Valid for 1 hour.
             </p>
             <button
               type="button"
               onClick={() => setIsSubmitted(false)}
-              className="text-xs font-black text-pulse-purple-primary hover:underline block mx-auto"
+              className="cursor-pointer text-xs font-black text-pulse-purple-primary hover:underline block mx-auto"
             >
-              Resend Link Packet
+              Resend Link
             </button>
           </div>
         )}
