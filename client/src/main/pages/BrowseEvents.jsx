@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { itemsMockDatabase, operationalRegions } from '../data/exploreData';
+import { itemsMockDatabase, operationalRegions } from '../../data/exploreData';
 
 export default function BrowseEvents() {
   const [activeScope, setActiveScope] = useState('events'); // 'events' | 'donations'

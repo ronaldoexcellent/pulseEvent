@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import LiveDonationNotification from '../components/LiveDonationNotification';
+import LiveDonationNotification from '../../components/LiveDonationNotification';
 
 // Mock database representing the campaign context
 const INITIAL_CAMPAIGN_DATA = {

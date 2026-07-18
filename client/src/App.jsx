@@ -1,50 +1,48 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, useLocation, BrowserRouter } from "react-router-dom";
 
 // Components & Layouts
-import AppLayout from "./layout/AppLayout";
-import AdminLayout from "./layout/AdminLayout";
+import AppLayout from "./main/layout/AppLayout";
+import AdminLayout from "./main/layout/AdminLayout";
 import AdminProtected from "./components/ProtectedRoute"; 
-import ProtectedRoute from "./auth/ProtectedRoute"; 
+import ProtectedRoute from "./main/auth/ProtectedRoute"; 
 
 // Public Pages
-import LandingPage from './page/landingPage';
-import SignIn from './auth/SignIn';
-import SignUp from './auth/SignUp';
-import ForgotPassword from "./auth/ForgotPassword";
-import ResetPassword from "./auth/ResetPassword";
-import AdminLogin from "./page/admin/AdminLogin";
+import LandingPage from './pages/landingPage';
+import SignIn from './main/auth/SignIn';
+import SignUp from './main/auth/SignUp';
+import ForgotPassword from "./main/auth/ForgotPassword";
+import ResetPassword from "./main/auth/ResetPassword";
+import AdminLogin from "./main/pages/admin/AdminLogin";
 
 // App Pages
-import BrowseEvents from "./page/BrowseEvents";
-import DetailHub from "./page/EventDetail"; 
-import DonationDetailHub from "./page/DonationDetailHub"; 
-import CreateOpportunity from "./page/CreateOpportunity";
-import CreateDonation from "./page/CreateDonation";
-import AvailableTicketsPage from "./page/AvailableTickets";
-import ScanTicketPage from "./page/ScanTicket";
-import TicketCodePage from "./page/TicketCode";
-import SettingsPage from "./page/Settings";
-import AvailableDonationsPage from "./page/AvailableDonationPage";
-import ProfilePage from "./page/ProfilePage";
-import SupportPage from "./page/SupportPage";
-import FeedbackPage from "./page/FeedbackPage";
-import Notifications from './page/Notifications';
-import DashboardPage from './page/DashboardPage';
+import BrowseEvents from "./main/pages/BrowseEvents";
+import DetailHub from "./main/pages/EventDetail"; 
+import DonationDetailHub from "./main/pages/DonationDetailHub";
+import AvailableTicketsPage from "./main/pages/AvailableTickets";
+import ScanTicketPage from "./main/pages/ScanTicket";
+import TicketCodePage from "./main/pages/TicketCode";
+import Settings from "./main/pages/Settings";
+import ProfilePage from "./main/pages/ProfilePage";
+import SupportPage from "./pages/SupportPage";
+import FeedbackPage from "./main/pages/FeedbackPage";
+import Notifications from './main/pages/Notifications';
+import DashboardPage from './main/pages/DashboardPage';
 
 // Admin Pages
-import AdminOverviewPage from "./page/admin/OverviewPage";
-import AdminUsersPage from "./page/admin/UsersPage";
-import AdminContentPage from "./page/admin/ContentPage";
-import AdminFinancialsPage from "./page/admin/FinancialsPage";
-import SupportFeedback from "./page/admin/Support&Feedback";
+import AdminOverviewPage from "./main/pages/admin/OverviewPage";
+import AdminUsersPage from "./main/pages/admin/UsersPage";
+import AdminContentPage from "./main/pages/admin/ContentPage";
+import AdminFinancialsPage from "./main/pages/admin/FinancialsPage";
+import SupportFeedback from "./main/pages/admin/Support&Feedback";
 
 // Compliance
-import PulseEventPolicy from './page/compliance/privacyPolicy';
-import TermsOfExecution from './page/compliance/TermsofExecution';
-import FraudPrevention from './page/compliance/FraudPrevention';
+import PulseEventPolicy from './pages/compliance/privacyPolicy';
+import TermsOfExecution from './pages/compliance/TermsofExecution';
+import FraudPrevention from './pages/compliance/FraudPrevention';
 import NotFound from './404/NotFound';
-import { AuthProvider } from './auth/AuthProvider';
+import { AuthProvider } from './main/auth/AuthProvider';
+import EventCreationForm from './main/pages/New/Create';
 
 // Scroll Restoration Helper
 const ScrollToTop = () => {
@@ -56,6 +54,8 @@ const ScrollToTop = () => {
 };
 
 const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   return (
     <div>
       <ScrollToTop />
@@ -63,9 +63,9 @@ const App = () => {
       <AuthProvider>
         <Routes>
           {/* Isolated Public Corridor */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} />} />
+          <Route path="/signin" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
+          <Route path="/signup" element={<SignUp setIsLoggedIn={setIsLoggedIn} />} />
           <Route path="/forgotpwd" element={<ForgotPassword />} />
           <Route path="/resetpwd" element={<ResetPassword />} />
           <Route path="/privacy" element={<PulseEventPolicy />} /> 
@@ -76,16 +76,15 @@ const App = () => {
           {/* UPDATED: Protected Core App Layout Cluster */}
           {/* ========================================================= */}
           <Route element={<ProtectedRoute />}>
-            <Route element={<AppLayout />}>
+            <Route element={<AppLayout setIsLoggedIn={setIsLoggedIn} />}>
               <Route path="/dashboard" element={<DashboardPage /> } />
+              <Route path="/create" element={<EventCreationForm /> } />
               <Route path="/browse" element={<BrowseEvents />} />
-              <Route path="/create-event-ticket" element={<CreateOpportunity />} />
-              <Route path="/create-campaign" element={<CreateDonation />} />
               <Route path="/available-tickets" element={<AvailableTicketsPage />} />
               <Route path="/scan-ticket" element={<ScanTicketPage />} />
               <Route path="/ticket-code" element={<TicketCodePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/available-donations" element={<AvailableDonationsPage />} />
+              <Route path="/settings" element={<Settings />} />
+              {/* <Route path="/available-donations" element={<AvailableDonationsPage />} /> */}
               <Route path="/support" element={<SupportPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/profile" element={<ProfilePage />} />

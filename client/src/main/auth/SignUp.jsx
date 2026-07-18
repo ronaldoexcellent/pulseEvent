@@ -4,7 +4,7 @@ import { toast, Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { useAuth } from '../auth/AuthProvider';
+import { useAuth } from './AuthProvider';
 import PageLoading from '../components/loaders/pageLoading';
 
 const validationRules = {
@@ -39,7 +39,7 @@ function validateForm(formData, rules) {
   return errors;
 }
 
-export default function SignUp({ onSignUpSuccess }) {
+export default function SignUp({ onSignUpSuccess, setIsLoggedIn }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +58,7 @@ export default function SignUp({ onSignUpSuccess }) {
   }
 
   if (user) {
+    setIsLoggedIn(true);
     return <Navigate to={from} replace />;
   }
 
@@ -125,6 +126,8 @@ export default function SignUp({ onSignUpSuccess }) {
       
       // OPTIONAL: If you maintain a user state in an AuthContext, update it here:
       setUser(response.data.user); 
+
+      setIsLoggedIn(true);
       
       // navigate(from, { replace: true });
       window.location.replace(from);
@@ -149,6 +152,7 @@ export default function SignUp({ onSignUpSuccess }) {
       toast.dismiss(loadtoast);
       toast.success('Google login successful!');
       // navigate(from, { replace: true });
+      setIsLoggedIn={setIsLoggedIn};
       window.location.replace(from);
       if (onSignUpSuccess) onSignUpSuccess(response.data.user);
     } catch (error) {

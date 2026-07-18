@@ -7,7 +7,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import PageLoading from '../components/loaders/pageLoading';
 
-export default function SignIn({ onSignInSuccess }) {
+export default function SignIn({ onSignInSuccess, setIsLoggedIn }) {
   const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -21,6 +21,7 @@ export default function SignIn({ onSignInSuccess }) {
   }
 
   if (user) {
+    setIsLoggedIn(true);
     return <Navigate to={from} replace />;
   }
 
@@ -46,6 +47,7 @@ export default function SignIn({ onSignInSuccess }) {
       setIsLoading(false);
       toast.success(response.data.message || 'Login successful!');
       setUser(response.data.user);
+      setIsLoggedIn(true);
       // navigate(from, { replace: true });
       window.location.replace(from);
       if (onSignInSuccess) onSignInSuccess(response.data.user);
@@ -67,11 +69,10 @@ export default function SignIn({ onSignInSuccess }) {
       });
       toast.dismiss(loadtoast);
       toast.success('Google login successful!');
+      setIsLoggedIn(true);
       // navigate(from, { replace: true });
       window.location.replace(from);
-
       if (onSignInSuccess) onSignInSuccess(response.data.user);
-      
     } catch (error) {
       toast.dismiss(loadtoast);
       toast.error(error.response?.data?.message || 'Google Auth failed.');

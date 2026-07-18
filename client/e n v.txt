@@ -1,0 +1,2 @@
+VITE_GOOGLE_CLIENT_ID=106873262911-q2e3udi1360ah30vls4csmne1c1gcjce.apps.googleusercontent.com
+VITE_BASE_URL=http://localhost:5000

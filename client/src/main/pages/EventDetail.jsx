@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { itemsMockDatabase } from '../data/exploreData';
+import { itemsMockDatabase } from '../../data/exploreData';
 
 // High-contrast cover presets for the donation branch
 const PRESET_GALLERY = [

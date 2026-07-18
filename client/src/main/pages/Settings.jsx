@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function SettingsPage() {
+export default function Settings() {
   const [formData, setFormData] = useState({
     fullName: 'Barr. Adebayo Alex.U.',
     email: 'adebayo.alex@example.com',
