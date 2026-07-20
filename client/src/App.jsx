@@ -88,7 +88,7 @@ const App = () => {
               <Route path="/support" element={<SupportPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/notification" element={<Notifications />} />
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/explore/events/:routeId" element={<DetailHub routeType="events" />} />
               <Route path="/explore/donations/:routeId" element={<DonationDetailHub />} />
             </Route>

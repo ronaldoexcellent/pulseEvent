@@ -6,22 +6,27 @@ import {
     X, 
     Home, 
     PartyPopper, 
-    Ticket, 
+    Calendar, 
     PlusCircle, 
     Eye, 
     Search, 
     Bell, 
     Settings, 
     LogOut,
-    ChevronDown
+    ChevronDown,
+    ScanQrCode
 } from 'lucide-react';
 import Header from './Header';
 
-export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) {
+export default function Navbar({ user, handleLogout, isLoggingOut, setIsNavigating }) {
     const location = useLocation();
     const [showMenu, setShowMenu] = useState(false);
     // State for the tablet center popup
     const [subMenu, setSubMenu] = useState(false);
+    
+    // Add some distinct colors per index for the popup
+    const iconColors = ['text-[#5a1fb5]', 'text-[#f2378f]', 'text-blue-500'];
+    const [colors, passColors] = useState('');
 
     // Helper for the Notification Red Dot
     const NotificationDot = () => (
@@ -35,18 +40,19 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
     const navLinks = [
         { path: '/dashboard', label: 'Dashboard', icon: Home },
         { path: '/create', label: 'Create', icon: PlusCircle },
+        { path: '/search', label: 'Search', icon: Search },
         { 
             label: 'View', 
             icon: Eye, 
             isDropdown: true,
             subLinks: [
                 { path: '/events', label: 'My Events', icon: PartyPopper },
-                { path: '/bookings', label: 'My Bookings', icon: Ticket },
+                { path: '/bookings', label: 'My Bookings', icon: Calendar },
                 { path: '/notifications', label: 'Notifications', icon: Bell, isNotification: true }
             ]
         },
-        { path: '/search', label: 'Search', icon: Search },
-        { path: '/settings', label: 'Settings', icon: Settings },
+        { path: '/scan-ticket', label: 'Scan', icon: ScanQrCode },
+        { path: '/settings', label: 'Settings', icon: Settings }
     ];
 
     return (
@@ -71,8 +77,7 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                                         <button
                                             onClick={() => setViewDropdown(!viewDropdown)}
                                             className={`
-                                                relative flex items-center justify-between w-full px-4 py-3.5 rounded-2xl transition-colors duration-300
-                                                ${isChildActive ? 'text-[#5a1fb5]' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50/50'}
+                                                relative flex items-center justify-between w-full px-4 py-3.5 rounded-2xl transition-colors duration-300 cursor-pointer ${isChildActive ? 'text-pulse-purple-primary' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50/50'}
                                             `}
                                         >
                                             <div className="flex flex-row items-center justify-start gap-3">
@@ -104,7 +109,7 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                                                                 to={sub.path}
                                                                 className={`
                                                                     flex flex-row items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300
-                                                                    ${isSubActive ? 'text-[#f2378f] bg-pink-50/50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50/50'}
+                                                                    ${isSubActive ? 'text-pulse-pink-primary bg-pink-50/50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50/50'}
                                                                 `}
                                                             >
                                                                 <div className="relative">
@@ -164,10 +169,10 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                     <div className="flex flex-col gap-3 w-full px-4 pt-6 border-t border-gray-200/60 mt-auto shrink-0">
                         <button
                             onClick={handleLogout}
-                            className="group flex items-center gap-3 w-full px-4 py-3.5 bg-gray-900 hover:bg-[#5a1fb5] text-white font-black rounded-2xl transition-all shadow-md shadow-gray-900/10 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                            className="group flex items-center gap-3 w-full px-4 py-3.5 bg-gray-900 hover:bg-pulse-purple-primary text-white font-black rounded-2xl transition-all shadow-md shadow-gray-900/10 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
                         >
                             <LogOut className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                            <span> {isLoggingOut ? 'Logging out...' : 'Logout'} </span>
+                            <span> {isLoggingOut ? 'Logging out...' : 'Log Out'} </span>
                         </button>
                     </div>
                 </div>
@@ -187,8 +192,6 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                         >
                             {/* Retrieve the subLinks dynamically from the "View" object */}
                             {navLinks.find(link => link.isDropdown)?.subLinks.map((sub, i) => {
-                                // Add some distinct colors per index for the popup
-                                const iconColors = ['text-[#5a1fb5]', 'text-[#f2378f]', 'text-blue-500'];
                                 return (
                                     <Link
                                         key={sub.path}
@@ -210,13 +213,12 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
 
                 {/* Tablet Main Tab Icons */}
                 {navLinks.map((link) => {
-                    // Render the special center button for the Dropdown object
                     if (link.isDropdown) {
                         return (
                             <button
                                 key="tablet-view-toggle"
                                 onClick={() => setSubMenu(!subMenu)}
-                                className="relative flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-[#5a1fb5] to-[#f2378f] text-white rounded-full shadow-lg shadow-purple-500/30 -translate-y-6 border-4 border-white focus:outline-none transition-transform active:scale-95 shrink-0 z-50"
+                                className="relative flex items-center justify-center w-14 h-14 bg-linear-to-tr from-pulse-purple-primary to-pulse-pink-primary text-white rounded-full shadow-lg shadow-purple-500/30 -translate-y-8 cursor-pointer border-4 border-white focus:outline-none transition-transform active:scale-95 shrink-0 z-50"
                                 title="View Options"
                             >
                                 <AnimatePresence mode="wait">
@@ -243,7 +245,7 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                             title={link.label}
                             className={`
                                 relative flex flex-col items-center justify-center p-1.5 sm:p-2 flex-1 min-w-0 z-10
-                                ${isActive ? 'text-[#5a1fb5]' : 'text-gray-500 hover:text-gray-800'}
+                                ${isActive ? 'text-pulse-purple-primary' : 'text-gray-500 hover:text-gray-800'}
                             `}
                         >
                             {isActive && (
@@ -262,10 +264,24 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                         </Link>
                     );
                 })}
+
+                {/* Fixed Standalone Logout Button */}
+                <button
+                    onClick={handleLogout}
+                    title="Logout"
+                    className="relative flex flex-col items-center justify-center p-1.5 sm:p-2 flex-1 min-w-0 z-10 text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
+                >
+                    <span className="transition-transform duration-300 flex items-center justify-center scale-100">
+                        <LogOut size={22} />
+                    </span>
+                    <span className="text-[8.5px] sm:text-[9px] tracking-wide transition-all duration-300 text-center whitespace-nowrap mt-1 truncate w-full font-medium">
+                        Logout
+                    </span>
+                </button>
             </div>
 
             {/* Mobile View - Top Header & Right Sidenav */}
-            <div className="flex md:hidden flex-col w-full min-h-screen bg-[#f7f7fa]">
+            <div className="flex w-full md:hidden bg-pulse-bg-light">
                 <Header setShowMenu={setShowMenu} />
 
                 <AnimatePresence>
@@ -284,46 +300,60 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-                                className="fixed top-0 right-0 z-50 flex flex-col w-4/5 max-w-sm h-full bg-white shadow-2xl"
+                                className="fixed top-0 right-0 z-50 flex flex-col w-11/12 h-full max-w-sm bg-white shadow-2xl"
                             >
-                                <div className="p-6 bg-gradient-to-br from-[#5a1fb5] via-[#7b2bc9] to-[#c13ac7]">
-                                    <div className="flex items-center justify-between mb-8 text-white">
-                                        <h2 className="text-2xl font-bold tracking-wide">Menu</h2>
-                                        <button 
-                                            onClick={() => setShowMenu(false)} 
-                                            className="text-white transition-colors hover:text-[#ff4fa3]"
-                                        >
-                                            <X size={24} />
-                                        </button>
-                                    </div>
-                                    
+                                <div className="p-6 bg-linear-to-br from-pulse-purple-primary via-pulse-purple-secondary to-pulse-gradient-blend">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center justify-center w-12 h-12 text-lg font-bold text-white border-2 rounded-full bg-[#f2378f] border-[#ff4fa3]">
-                                            JD
+                                        <div className="flex items-center justify-center w-12 h-12 text-lg font-bold text-white border-2 rounded-full bg-pulse-pink-primary border-pulse-pink-accent">
+                                            {(user?.firstname || "?").charAt(0)}{(user?.lastname || "?").charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-white">John Doe</p>
-                                            <p className="text-sm text-gray-200">Super Admin</p>
+                                            <p className="font-semibold text-white">{user.firstname} {user.lastname}</p>
+                                            <p className="text-sm text-gray-200">@{user.username}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto bg-white">
+                                {/* PROPERLY ALIGNED CLOSE BUTTON */}
+                                <div className="flex justify-end px-6 pt-2 pb-2 bg-white text-purple-800">
+                                    <button 
+                                        onClick={() => setShowMenu(false)} 
+                                        className="flex items-center gap-1 transition-colors cursor-pointer hover:text-purple-600"
+                                    >
+                                        <X size={15} />
+                                        <h2 className="text-xs font-bold tracking-wide uppercase mt-0.5">Close</h2>
+                                    </button>
+                                </div>
+
+                                <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto bg-white">
                                     {navLinks.map((link) => {
-                                        // Mobile View Accordion
                                         if (link.isDropdown) {
+                                            // Optional: Check if any sublink is active to highlight the parent dropdown button
+                                            const isParentActive = link.subLinks.some(sub => location.pathname === sub.path);
+
                                             return (
                                                 <div key={link.label} className="flex flex-col">
                                                     <button
                                                         onClick={() => setViewDropdown(!viewDropdown)}
-                                                        className="flex items-center justify-between w-full px-4 py-3 text-gray-800 transition-all rounded-xl hover:bg-[#f7f7fa] hover:text-[#5a1fb5] group"
+                                                        className={`flex items-center justify-between w-full px-4 py-3 transition-all cursor-pointer rounded-xl group ${
+                                                            isParentActive 
+                                                                ? 'bg-pulse-bg-light text-pulse-purple-primary' 
+                                                                : 'text-gray-800 hover:bg-pulse-bg-light hover:text-pulse-purple-primary'
+                                                        }`}
                                                     >
                                                         <div className="flex items-center gap-4">
-                                                            <link.icon size={20} className="text-gray-400 transition-colors group-hover:text-[#f2378f]" />
+                                                            <link.icon 
+                                                                size={20} 
+                                                                className={`transition-colors ${
+                                                                    isParentActive 
+                                                                        ? 'text-pulse-pink-primary' 
+                                                                        : 'text-gray-400 group-hover:text-pulse-pink-primary'
+                                                                }`} 
+                                                            />
                                                             <span className="font-medium">{link.label}</span>
                                                         </div>
                                                         <motion.div animate={{ rotate: viewDropdown ? 180 : 0 }}>
-                                                            <ChevronDown size={18} className="text-gray-400" />
+                                                            <ChevronDown size={18} className={isParentActive ? 'text-pulse-pink-primary' : 'text-gray-400'} />
                                                         </motion.div>
                                                     </button>
                                                     
@@ -333,22 +363,33 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                                                                 initial={{ height: 0, opacity: 0 }}
                                                                 animate={{ height: 'auto', opacity: 1 }}
                                                                 exit={{ height: 0, opacity: 0 }}
-                                                                className="overflow-hidden flex flex-col pl-12 pr-4 gap-1 mt-1"
+                                                                className="flex flex-col gap-1 pr-4 mt-1 overflow-hidden pl-12"
                                                             >
-                                                                {link.subLinks.map(sub => (
-                                                                    <Link
-                                                                        key={sub.path}
-                                                                        to={sub.path}
-                                                                        onClick={() => setShowMenu(false)}
-                                                                        className="flex items-center gap-3 py-2.5 text-sm text-gray-500 hover:text-[#5a1fb5] font-medium"
-                                                                    >
-                                                                        <div className="relative">
-                                                                            <sub.icon size={18} />
-                                                                            {sub.isNotification && <NotificationDot />}
-                                                                        </div>
-                                                                        <span>{sub.label}</span>
-                                                                    </Link>
-                                                                ))}
+                                                                {link.subLinks.map(sub => {
+                                                                    const isSubActive = location.pathname === sub.path;
+                                                                    
+                                                                    return (
+                                                                        <Link
+                                                                            key={sub.path}
+                                                                            to={sub.path}
+                                                                            onClick={() => setShowMenu(false)}
+                                                                            className={`flex items-center gap-3 py-2.5 text-sm font-medium transition-colors ${
+                                                                                isSubActive 
+                                                                                    ? 'text-pulse-purple-primary' 
+                                                                                    : 'text-gray-500 hover:text-pulse-purple-primary'
+                                                                            }`}
+                                                                        >
+                                                                            <div className="relative">
+                                                                                <sub.icon 
+                                                                                    size={18} 
+                                                                                    className={isSubActive ? 'text-pulse-pink-primary' : 'text-gray-400'} 
+                                                                                />
+                                                                                {sub.isNotification && <NotificationDot />}
+                                                                            </div>
+                                                                            <span>{sub.label}</span>
+                                                                        </Link>
+                                                                    );
+                                                                })}
                                                             </motion.div>
                                                         )}
                                                     </AnimatePresence>
@@ -356,23 +397,35 @@ export default function Navbar({ handleLogout, isLoggingOut, setIsNavigating }) 
                                             )
                                         }
 
-                                        // Standard Mobile Link
+                                        const isActive = location.pathname === link.path;
+
                                         return (
                                             <Link
                                                 key={link.path}
                                                 to={link.path}
                                                 onClick={() => setShowMenu(false)}
-                                                className="flex items-center gap-4 px-4 py-3 text-gray-800 transition-all rounded-xl hover:bg-[#f7f7fa] hover:text-[#5a1fb5] group"
+                                                className={`flex items-center gap-4 px-4 py-3 transition-all rounded-xl group ${
+                                                    isActive 
+                                                        ? 'bg-pulse-bg-light text-pulse-purple-primary' 
+                                                        : 'text-gray-800 hover:bg-pulse-bg-light hover:text-pulse-purple-primary'
+                                                }`}
                                             >
-                                                <link.icon size={20} className="text-gray-400 transition-colors group-hover:text-[#f2378f]" />
+                                                <link.icon 
+                                                    size={20} 
+                                                    className={`transition-colors ${
+                                                        isActive 
+                                                            ? 'text-pulse-pink-primary' 
+                                                            : 'text-gray-400 group-hover:text-pulse-pink-primary'
+                                                    }`} 
+                                                />
                                                 <span className="font-medium">{link.label}</span>
                                             </Link>
                                         )
                                     })}
                                 </nav>
 
-                                <div className="p-6 border-t border-gray-100 bg-[#f7f7fa]">
-                                    <button onClick={handleLogout} className="flex items-center justify-center w-full gap-2 py-3 font-semibold text-white transition-all rounded-xl bg-gradient-to-r from-[#f2378f] to-[#ff4fa3] shadow-md shadow-pink-500/25 hover:shadow-lg hover:-translate-y-0.5">
+                                <div className="p-6 border-t border-gray-100 bg-pulse-bg-light">
+                                    <button onClick={handleLogout} className="flex items-center justify-center w-full gap-2 py-3 font-semibold text-white transition-all shadow-md cursor-pointer rounded-xl bg-linear-to-r from-purple-800 to-purple-900 shadow-pink-500/25 hover:shadow-lg hover:-translate-y-0.5">
                                         <LogOut size={18} />
                                         <span>{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
                                     </button>

@@ -361,7 +361,7 @@ app.get('/api/me', requireAuth, async (req, res) => {
   try {
     // req.user was attached by your requireAuth middleware after verifying the JWT
     const userResult = await pool.query(
-      'SELECT id, firstname, username, email FROM users WHERE id = $1', 
+      'SELECT id, firstname, lastname, username, email FROM users WHERE id = $1', 
       [req.user.id]
     );
 
