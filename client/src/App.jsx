@@ -42,7 +42,13 @@ import TermsOfExecution from './pages/compliance/TermsofExecution';
 import FraudPrevention from './pages/compliance/FraudPrevention';
 import NotFound from './404/NotFound';
 import { AuthProvider } from './main/auth/AuthProvider';
-import EventCreationForm from './main/pages/New/Create';
+
+// New
+import Create from './main/pages/New/Create';
+import Explore from './main/pages/New/Explore';
+import Scan from './main/pages/New/Scan';
+import MyBookings from './main/pages/view/MyBookings';
+import MyEvents from './main/pages/view/MyEvents';
 
 // Scroll Restoration Helper
 const ScrollToTop = () => {
@@ -78,7 +84,7 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout setIsLoggedIn={setIsLoggedIn} />}>
               <Route path="/dashboard" element={<DashboardPage /> } />
-              <Route path="/create" element={<EventCreationForm /> } />
+              {/* <Route path="/create" element={<EventCreationForm /> } /> */}
               <Route path="/browse" element={<BrowseEvents />} />
               <Route path="/available-tickets" element={<AvailableTicketsPage />} />
               <Route path="/scan-ticket" element={<ScanTicketPage />} />
@@ -91,6 +97,13 @@ const App = () => {
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/explore/events/:routeId" element={<DetailHub routeType="events" />} />
               <Route path="/explore/donations/:routeId" element={<DonationDetailHub />} />
+
+              {/* New */}
+              <Route path="/create" element={<Create />} />
+              <Route path="/search" element={<Explore />} />
+              <Route path="/scan" element={<Scan />} />
+              <Route path="/mybookings" element={<MyBookings />} />
+              <Route path="/myevents" element={<MyEvents />} />
             </Route>
           </Route>
 

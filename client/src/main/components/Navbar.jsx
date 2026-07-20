@@ -46,12 +46,12 @@ export default function Navbar({ user, handleLogout, isLoggingOut, setIsNavigati
             icon: Eye, 
             isDropdown: true,
             subLinks: [
-                { path: '/events', label: 'My Events', icon: PartyPopper },
-                { path: '/bookings', label: 'My Bookings', icon: Calendar },
+                { path: '/myevents', label: 'My Events', icon: PartyPopper },
+                { path: '/mybookings', label: 'My Bookings', icon: Calendar },
                 { path: '/notifications', label: 'Notifications', icon: Bell, isNotification: true }
             ]
         },
-        { path: '/scan-ticket', label: 'Scan', icon: ScanQrCode },
+        { path: '/scan', label: 'Scan', icon: ScanQrCode },
         { path: '/settings', label: 'Settings', icon: Settings }
     ];
 

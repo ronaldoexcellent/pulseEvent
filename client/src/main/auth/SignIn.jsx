@@ -16,12 +16,21 @@ export default function SignIn({ onSignInSuccess, setIsLoggedIn }) {
   const { setUser, user, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   
+  // ==========================================
+  // FIX: Handle the parent state update safely inside a useEffect
+  // ==========================================
+  useEffect(() => {
+    if (user) {
+      setIsLoggedIn(true);
+    }
+  }, [user, setIsLoggedIn]);
+
   if (loading) {
     return <PageLoading />;
   }
 
   if (user) {
-    setIsLoggedIn(true);
+    // The state update was moved to the useEffect above, so we only handle the navigation here
     return <Navigate to={from} replace />;
   }
 
@@ -75,6 +84,7 @@ export default function SignIn({ onSignInSuccess, setIsLoggedIn }) {
       if (onSignInSuccess) onSignInSuccess(response.data.user);
     } catch (error) {
       toast.dismiss(loadtoast);
+      // This will now successfully display the "date and time out of sync" message from the backend!
       toast.error(error.response?.data?.message || 'Google Auth failed.');
     }
   };

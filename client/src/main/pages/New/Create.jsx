@@ -5,7 +5,7 @@ import {
   Settings2, AlignLeft, Target
 } from 'lucide-react';
 
-const EventCreationForm = () => {
+const Create = () => {
   // Basic Info State
   const [privacy, setPrivacy] = useState('public');
   const [eventType, setEventType] = useState('venue');
@@ -148,7 +148,7 @@ const EventCreationForm = () => {
           {/* Section 2: Privacy & Settings */}
           <div className="p-6 bg-white shadow-sm rounded-2xl md:p-8">
             <h2 className="flex items-center mb-6 text-xl font-bold text-gray-800 gap-2">
-              <Settings2 className="text-[#7b2bc9]" size={24} />
+              <Settings2 className="text-pulse-purple-secondary" size={24} />
               Privacy & Settings
             </h2>
             
@@ -391,4 +391,4 @@ const EventCreationForm = () => {
   );
 };
 
-export default EventCreationForm;
+export default Create;
