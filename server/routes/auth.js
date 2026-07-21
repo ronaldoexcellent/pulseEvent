@@ -3,9 +3,10 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const pool = require('../config/db');
 const transporter = require('../services/emailService');
+const { requireAuth } = require('../middleware/authMiddleware');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
-const { requireAuth } = require('../middleware/authMiddleware');
+
 const express = require('express');
 const router = express.Router();
 

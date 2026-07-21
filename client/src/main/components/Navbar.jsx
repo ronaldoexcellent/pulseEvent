@@ -14,7 +14,8 @@ import {
     Settings, 
     LogOut,
     ChevronDown,
-    ScanQrCode
+    ScanQrCode,
+    HandHeart
 } from 'lucide-react';
 import Header from './Header';
 
@@ -48,6 +49,7 @@ export default function Navbar({ user, handleLogout, isLoggingOut, setIsNavigati
             subLinks: [
                 { path: '/myevents', label: 'My Events', icon: PartyPopper },
                 { path: '/mybookings', label: 'My Bookings', icon: Calendar },
+                { path: '/mydonations', label: 'My Donations', icon: HandHeart },
                 { path: '/notifications', label: 'Notifications', icon: Bell, isNotification: true }
             ]
         },
@@ -58,7 +60,7 @@ export default function Navbar({ user, handleLogout, isLoggingOut, setIsNavigati
     return (
         <>
             {/* Desktop View - Sticky Sidebar */}
-            <nav className="hidden lg:flex sticky top-0 left-0 transition-all duration-500 ease-in-out rounded-3xl px-2 w-72 h-screen bg-white/60 backdrop-blur-2xl border-r border-gray-200/60 flex-col justify-between py-8 z-50">
+            <nav className="hidden lg:flex sticky top-0 left-0 transition-all duration-500 ease-in-out rounded-3xl px-2 w-72 h-screen backdrop-blur-2xl border-r border-gray-200/60 flex-col justify-between py-8 z-50">
                 <div className="flex flex-col w-full h-full justify-between">
                     <div className="flex flex-col shrink-0 w-full px-4 mb-8">
                         <a href="/" className="flex items-center gap-0.5">
@@ -179,7 +181,7 @@ export default function Navbar({ user, handleLogout, isLoggingOut, setIsNavigati
             </nav>
 
             {/* Tablet View - Fixed Bottom Nav */}
-            <div className="hidden md:flex lg:hidden fixed bottom-0 left-0 w-full flex-row justify-around items-center px-2 bg-white/90 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 h-16 pb-safe">
+            <div className="hidden md:flex lg:hidden fixed bottom-0 left-0 w-full flex-row justify-around items-center px-2 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 h-16 pb-safe">
                 {/* Bouncing Overlay Options Card mapped dynamically from subLinks */}
                 <AnimatePresence>
                     {subMenu && (

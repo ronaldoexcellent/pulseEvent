@@ -116,10 +116,10 @@ export default function ProfilePage() {
                     </div>
                     
                     <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-1">
-                      ${user.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {/* ${user.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} */}
                     </h2>
                     <p className="text-gray-400 text-xs font-medium mb-8">
-                      Total Lifetime Earnings: ${user.totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {/* Total Lifetime Earnings: ${user.totalEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })} */}
                     </p>
 
                     <button className="w-full py-4 bg-white text-gray-950 hover:bg-gray-100 rounded-xl text-sm font-black uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center gap-2">

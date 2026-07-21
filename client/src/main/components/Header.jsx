@@ -4,7 +4,7 @@ export default function Header({ setShowMenu }) {
     return (
         <>
             {/* Mobile View */}
-            <header className="flex items-center justify-between p-2 bg-white shadow-sm z-30 fixed top-0 left-0 right-0">
+            <header className="flex items-center justify-between p-2 bg-white shadow-sm  fixed top-0 left-0 right-0">
                 {/* <div className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#5a1fb5] via-[#c13ac7] to-[#f2378f]">
                     Pulse-Event
                 </div> */}

@@ -22,7 +22,7 @@ import DonationDetailHub from "./main/pages/DonationDetailHub";
 import AvailableTicketsPage from "./main/pages/AvailableTickets";
 import ScanTicketPage from "./main/pages/ScanTicket";
 import TicketCodePage from "./main/pages/TicketCode";
-import Settings from "./main/pages/Settings";
+import Settings from "./main/pages/new/Settings";
 import ProfilePage from "./main/pages/ProfilePage";
 import SupportPage from "./pages/SupportPage";
 import FeedbackPage from "./main/pages/FeedbackPage";
@@ -41,13 +41,15 @@ import PulseEventPolicy from './pages/compliance/privacyPolicy';
 import TermsOfExecution from './pages/compliance/TermsofExecution';
 import FraudPrevention from './pages/compliance/FraudPrevention';
 import NotFound from './404/NotFound';
-import { AuthProvider } from './main/auth/AuthProvider';
+import { AuthProvider, useAuth } from './main/auth/AuthProvider';
+import { ThemeProvider } from './context/ThemeProvider';
 
 // New
 import Create from './main/pages/New/Create';
 import Explore from './main/pages/New/Explore';
 import Scan from './main/pages/New/Scan';
 import MyBookings from './main/pages/view/MyBookings';
+import MyDonations from './main/pages/view/MyDonations';
 import MyEvents from './main/pages/view/MyEvents';
 
 // Scroll Restoration Helper
@@ -61,6 +63,7 @@ const ScrollToTop = () => {
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user } = useAuth();
 
   return (
     <div>
@@ -81,7 +84,11 @@ const App = () => {
           {/* ========================================================= */}
           {/* UPDATED: Protected Core App Layout Cluster */}
           {/* ========================================================= */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={
+            <ThemeProvider userId={user?.id}>
+              <ProtectedRoute />
+            </ThemeProvider>
+          }>
             <Route element={<AppLayout setIsLoggedIn={setIsLoggedIn} />}>
               <Route path="/dashboard" element={<DashboardPage /> } />
               {/* <Route path="/create" element={<EventCreationForm /> } /> */}
@@ -103,7 +110,9 @@ const App = () => {
               <Route path="/search" element={<Explore />} />
               <Route path="/scan" element={<Scan />} />
               <Route path="/mybookings" element={<MyBookings />} />
+              <Route path="/mydonations" element={<MyDonations />} />
               <Route path="/myevents" element={<MyEvents />} />
+              <Route path="/eved" element={<DetailHub />} />
             </Route>
           </Route>
 

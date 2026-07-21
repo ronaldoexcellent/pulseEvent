@@ -18,9 +18,13 @@ app.use(cookieParser()); // Required to read cookies in incoming requests
 
 // ROUTES
 const authRoutes = require('./routes/auth');
+const themeRoute = require('./routes/usertheme');
 
 // 2. Mount them to specific URL paths
 app.use('/api', authRoutes);
+app.use('/api', themeRoute);
+
+
 // app.use('/api/tickets', ticketRoutes);
 
 // Cron Job

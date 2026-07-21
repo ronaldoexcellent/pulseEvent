@@ -76,7 +76,7 @@ export default function AppLayout({ setIsLoggedIn }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-9999 bg-white flex items-center justify-center"
+            className="fixed inset-0 z-9999 flex items-center justify-center"
           >
             <AppLoader 
               isLoggingOut={isLoggingOut} 
@@ -100,7 +100,7 @@ export default function AppLayout({ setIsLoggedIn }) {
       </AnimatePresence>
 
       {hasShownLoader && (
-        <div className="min-h-screen bg-pulse-bg-light text-gray-800 font-sans selection:bg-pulse-purple-primary/30 flex flex-col md:flex-row">
+        <div className="min-h-screen font-sans selection:bg-pulse-purple-primary/30 flex flex-col md:flex-row">
           <Navbar user={user} handleLogout={handleLogout} isLoggingOut={isLoggingOut} isNavigating={isNavigating} />
 
           {/* --- Main Content Shell --- */}

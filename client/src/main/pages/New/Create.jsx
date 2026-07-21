@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Calendar, MapPin, Globe, Lock, Unlock, 
-  Ticket, Plus, Trash2, Heart, Image as ImageIcon,
-  Settings2, AlignLeft, Target
+  Ticket, Plus, Trash2, Heart,
+  Settings2, AlignLeft, Target, Check, Image as ImageIcon
 } from 'lucide-react';
+
+const PRESET_GALLERY = [
+  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+  'https://images.unsplash.com/photo-1551818255-e6e10975bc17?w=800&q=80',
+  'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&q=80',
+  'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&q=80',
+  'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
+  'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
+  'https://images.unsplash.com/photo-1533174000222-edfe3bac9334?w=800&q=80',
+  'https://images.unsplash.com/photo-1520092362635-728b6d3cc32b?w=800&q=80',
+  'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80'
+];
 
 const Create = () => {
   // Basic Info State
@@ -11,7 +24,7 @@ const Create = () => {
   const [eventType, setEventType] = useState('venue');
   
   // Module Toggles
-  const [ticketingEnabled, setTicketingEnabled] = useState(true);
+  const [ticketingEnabled, setTicketingEnabled] = useState(false);
   const [donationsEnabled, setDonationsEnabled] = useState(false);
   
   // Ticketing State
@@ -23,6 +36,9 @@ const Create = () => {
   const [donations, setDonations] = useState([
     { id: 1, title: 'General Support Fund', goal: '5000', description: 'Help us cover the operational costs for this event.' }
   ]);
+
+  // Cover Image State
+  const [coverPhoto, setCoverPhoto] = useState(PRESET_GALLERY[0]);
 
   // Ticket Handlers
   const addTicket = () => setTickets([...tickets, { id: Date.now(), name: '', price: '', capacity: '' }]);
@@ -39,12 +55,12 @@ const Create = () => {
   };
 
   return (
-    <div className="min-h-screen py-10 bg-[#f7f7fa]">
+    <div className="min-h-screen py-10 bg-pulse-bg-light">
       <div className="max-w-4xl px-4 mx-auto space-y-8">
         
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#5a1fb5] to-[#c13ac7]">
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-pulse-purple-primary to-pulse-gradient-blend">
             Create New Event
           </h1>
           <p className="mt-2 text-gray-600">Set up your event details, ticketing, and donation goals.</p>
@@ -55,7 +71,7 @@ const Create = () => {
           {/* Section 1: Basic Information */}
           <div className="p-6 bg-white shadow-sm rounded-2xl md:p-8">
             <h2 className="flex items-center mb-6 text-xl font-bold text-gray-800 gap-2">
-              <Calendar className="text-[#5a1fb5]" size={24} />
+              <Calendar className="text-pulse-purple-primary" size={24} />
               Basic Information
             </h2>
             
@@ -65,20 +81,20 @@ const Create = () => {
                 <input 
                   type="text" 
                   placeholder="e.g., Tech Startup Mixer 2026"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#5a1fb5] focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pulse-purple-primary focus:border-transparent outline-none transition-all"
                 />
               </div>
 
               {/* Event Description */}
               <div>
                 <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
-                  <AlignLeft size={16} className="text-[#c13ac7]" />
+                  <AlignLeft size={16} className="text-pulse-gradient-blend" />
                   Event Description
                 </label>
                 <textarea 
                   rows="4"
                   placeholder="Tell attendees what this event is about, what they can expect, and why they should join..."
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#5a1fb5] focus:border-transparent outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pulse-purple-primary focus:border-transparent outline-none transition-all resize-none"
                 ></textarea>
               </div>
 
@@ -87,14 +103,14 @@ const Create = () => {
                   <label className="block mb-2 text-sm font-medium text-gray-700">Start Date & Time</label>
                   <input 
                     type="datetime-local" 
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#5a1fb5] outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pulse-purple-primary outline-none transition-all"
                   />
                 </div>
                 <div>
                   <label className="block mb-2 text-sm font-medium text-gray-700">End Date & Time</label>
                   <input 
                     type="datetime-local" 
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#5a1fb5] outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pulse-purple-primary outline-none transition-all"
                   />
                 </div>
               </div>
@@ -107,7 +123,7 @@ const Create = () => {
                     type="button"
                     onClick={() => setEventType('venue')}
                     className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                      eventType === 'venue' ? 'bg-white text-[#5a1fb5] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      eventType === 'venue' ? 'bg-white text-pulse-purple-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
                     <MapPin size={16} /> Venue
@@ -116,7 +132,7 @@ const Create = () => {
                     type="button"
                     onClick={() => setEventType('online')}
                     className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                      eventType === 'online' ? 'bg-white text-[#5a1fb5] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      eventType === 'online' ? 'bg-white text-pulse-purple-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
                     <Globe size={16} /> Online Event
@@ -131,17 +147,71 @@ const Create = () => {
                 <input 
                   type="text" 
                   placeholder={eventType === 'venue' ? '123 Main St, Lagos, Nigeria' : 'e.g., Zoom link will be sent to attendees'}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#5a1fb5] outline-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pulse-purple-primary outline-none transition-all"
                 />
               </div>
 
-              <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">Event Image</label>
-                <div className="flex flex-col items-center justify-center p-8 border-2 border-gray-200 border-dashed rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group">
-                  <ImageIcon size={32} className="text-gray-400 group-hover:text-[#5a1fb5]" />
-                  <p className="mt-2 text-sm text-gray-500">Drag and drop an image, or <span className="font-medium text-[#5a1fb5]">browse</span></p>
+              {/* RESPONSIVE FULL DISPLAY & GALLERY SECTION */}
+              <div className="pt-4 space-y-4">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <ImageIcon size={16} className="text-pulse-purple-primary" />
+                  Event Cover Photo
+                </label>
+
+                {/* Main Large Display */}
+                <div className="relative w-full overflow-hidden shadow-md group aspect-video rounded-2xl bg-gray-100 border border-gray-200">
+                  <img 
+                    src={coverPhoto} 
+                    alt="Main Event Cover Preview" 
+                    className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
+                  />
+                  {/* Subtle gradient overlay at the bottom for polished look */}
+                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-4 left-4">
+                    <span className="px-3 py-1 text-xs font-semibold tracking-wide text-white uppercase bg-black/40 backdrop-blur-md rounded-full shadow-sm">
+                      Cover Preview
+                    </span>
+                  </div>
+                </div>
+
+                {/* Thumbnail Filmstrip Gallery */}
+                <div className="p-3 bg-gray-50 border border-gray-100 shadow-inner rounded-xl">
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                    {PRESET_GALLERY.map((url, idx) => {
+                      const isActive = coverPhoto === url;
+                      return (
+                        <div 
+                          key={idx} 
+                          onClick={() => setCoverPhoto(url)}
+                          className={`group relative aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ease-out ${
+                            isActive 
+                              ? 'ring-2 ring-pulse-purple-primary ring-offset-2 scale-[0.98]' 
+                              : 'opacity-70 hover:opacity-100 hover:ring-2 hover:ring-pulse-purple-primary/40 hover:ring-offset-1'
+                          }`}
+                        >
+                          <img 
+                            src={url} 
+                            alt={`Preset ${idx + 1}`} 
+                            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110" 
+                            loading="lazy" 
+                          />
+                          
+                          {/* Active Overlay Checkmark */}
+                          {isActive && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-pulse-purple-primary/20 backdrop-blur-[1px] transition-all">
+                              <div className="flex items-center justify-center w-6 h-6 text-white rounded-full shadow-md bg-pulse-purple-primary animate-in zoom-in duration-200">
+                                <Check size={14} strokeWidth={3} />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+              {/* END FULL DISPLAY & GALLERY SECTION */}
+
             </div>
           </div>
 
@@ -158,13 +228,13 @@ const Create = () => {
                 onClick={() => setPrivacy('public')}
                 className={`p-5 border-2 rounded-xl text-left transition-all ${
                   privacy === 'public' 
-                    ? 'border-[#5a1fb5] bg-[#5a1fb5]/5' 
-                    : 'border-gray-200 hover:border-[#5a1fb5]/30'
+                    ? 'border-pulse-purple-primary bg-pulse-purple-primary/5' 
+                    : 'border-gray-200 hover:border-pulse-purple-primary/30'
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <Unlock size={20} className={privacy === 'public' ? 'text-[#5a1fb5]' : 'text-gray-400'} />
-                  <span className={`font-semibold ${privacy === 'public' ? 'text-[#5a1fb5]' : 'text-gray-700'}`}>Public Event</span>
+                  <Unlock size={20} className={privacy === 'public' ? 'text-pulse-purple-primary' : 'text-gray-400'} />
+                  <span className={`font-semibold ${privacy === 'public' ? 'text-pulse-purple-primary' : 'text-gray-700'}`}>Public Event</span>
                 </div>
                 <p className="text-sm text-gray-500">Event is listed publicly. Anyone can find and participate.</p>
               </button>
@@ -174,25 +244,25 @@ const Create = () => {
                 onClick={() => setPrivacy('private')}
                 className={`p-5 border-2 rounded-xl text-left transition-all ${
                   privacy === 'private' 
-                    ? 'border-[#5a1fb5] bg-[#5a1fb5]/5' 
-                    : 'border-gray-200 hover:border-[#5a1fb5]/30'
+                    ? 'border-pulse-purple-primary bg-pulse-purple-primary/5' 
+                    : 'border-gray-200 hover:border-pulse-purple-primary/30'
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <Lock size={20} className={privacy === 'private' ? 'text-[#5a1fb5]' : 'text-gray-400'} />
-                  <span className={`font-semibold ${privacy === 'private' ? 'text-[#5a1fb5]' : 'text-gray-700'}`}>Private Event</span>
+                  <Lock size={20} className={privacy === 'private' ? 'text-pulse-purple-primary' : 'text-gray-400'} />
+                  <span className={`font-semibold ${privacy === 'private' ? 'text-pulse-purple-primary' : 'text-gray-700'}`}>Private Event</span>
                 </div>
                 <p className="text-sm text-gray-500">Event is hidden. Only people with a direct link can view and register.</p>
               </button>
             </div>
           </div>
 
-          {/* Section 3: Ticketing (Toggleable) */}
+          {/* Section 3: Ticketing */}
           <div className="p-6 bg-white shadow-sm rounded-2xl md:p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="flex items-center text-xl font-bold text-gray-800 gap-2">
-                  <Ticket className="text-[#f2378f]" size={24} />
+                  <Ticket className="text-pulse-pink-primary" size={24} />
                   Ticketing
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">Sell tickets or offer free registration.</p>
@@ -202,7 +272,7 @@ const Create = () => {
                 type="button"
                 onClick={() => setTicketingEnabled(!ticketingEnabled)}
                 className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-                  ticketingEnabled ? 'bg-[#f2378f]' : 'bg-gray-300'
+                  ticketingEnabled ? 'bg-pulse-pink-primary' : 'bg-gray-300'
                 }`}
               >
                 <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
@@ -233,7 +303,7 @@ const Create = () => {
                           value={ticket.name}
                           onChange={(e) => handleTicketChange(ticket.id, 'name', e.target.value)}
                           placeholder="e.g., VIP, Early Bird"
-                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f2378f] outline-none"
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pulse-pink-primary outline-none"
                         />
                       </div>
                       
@@ -246,7 +316,7 @@ const Create = () => {
                             value={ticket.price}
                             onChange={(e) => handleTicketChange(ticket.id, 'price', e.target.value)}
                             placeholder="0.00"
-                            className="w-full py-2 pl-8 pr-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f2378f] outline-none"
+                            className="w-full py-2 pl-8 pr-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pulse-pink-primary outline-none"
                           />
                         </div>
                       </div>
@@ -258,7 +328,7 @@ const Create = () => {
                           value={ticket.capacity}
                           onChange={(e) => handleTicketChange(ticket.id, 'capacity', e.target.value)}
                           placeholder="Unlimited"
-                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f2378f] outline-none"
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pulse-pink-primary outline-none"
                         />
                       </div>
                     </div>
@@ -268,7 +338,7 @@ const Create = () => {
                 <button
                   type="button"
                   onClick={addTicket}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-colors rounded-lg text-[#f2378f] bg-[#f2378f]/10 hover:bg-[#f2378f]/20"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-colors rounded-lg text-pulse-pink-primary bg-pulse-pink-primary/10 hover:bg-pulse-pink-primary/20"
                 >
                   <Plus size={16} /> Add Ticket Tier
                 </button>
@@ -276,12 +346,12 @@ const Create = () => {
             )}
           </div>
 
-          {/* Section 4: Donations (Toggleable & Expanded) */}
+          {/* Section 4: Donations */}
           <div className="p-6 bg-white shadow-sm rounded-2xl md:p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="flex items-center text-xl font-bold text-gray-800 gap-2">
-                  <Heart className="text-[#ff4fa3]" size={24} />
+                  <Heart className="text-pulse-pink-accent" size={24} />
                   Fundraising & Donations
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">Open specific donation goals or general support funds.</p>
@@ -291,7 +361,7 @@ const Create = () => {
                 type="button"
                 onClick={() => setDonationsEnabled(!donationsEnabled)}
                 className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-                  donationsEnabled ? 'bg-gradient-to-r from-[#ff4fa3] to-[#c13ac7]' : 'bg-gray-300'
+                  donationsEnabled ? 'bg-linear-to-r from-pulse-pink-accent to-pulse-gradient-blend' : 'bg-gray-300'
                 }`}
               >
                 <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
@@ -303,7 +373,7 @@ const Create = () => {
             {donationsEnabled && (
               <div className="pt-4 space-y-6 border-t border-gray-100">
                 {donations.map((donation) => (
-                  <div key={donation.id} className="relative p-5 border-2 rounded-xl bg-gray-50 border-[#ff4fa3]/20 group">
+                  <div key={donation.id} className="relative p-5 border-2 rounded-xl bg-gray-50 border-pulse-pink-accent/20 group">
                     {donations.length > 1 && (
                       <button
                         type="button"
@@ -323,13 +393,13 @@ const Create = () => {
                             value={donation.title}
                             onChange={(e) => handleDonationChange(donation.id, 'title', e.target.value)}
                             placeholder="e.g., Community Scholarship Fund"
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ff4fa3] outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pulse-pink-accent outline-none"
                           />
                         </div>
                         
                         <div>
                           <label className="flex items-center gap-1 mb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                            <Target size={14} className="text-[#c13ac7]" /> Target Goal
+                            <Target size={14} className="text-pulse-gradient-blend" /> Target Goal
                           </label>
                           <div className="relative flex">
                             <span className="absolute text-gray-500 left-3 top-1/2 -translate-y-1/2">$</span>
@@ -338,7 +408,7 @@ const Create = () => {
                               value={donation.goal}
                               onChange={(e) => handleDonationChange(donation.id, 'goal', e.target.value)}
                               placeholder="Optional"
-                              className="w-full py-2 pl-8 pr-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ff4fa3] outline-none"
+                              className="w-full py-2 pl-8 pr-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pulse-pink-accent outline-none"
                             />
                           </div>
                         </div>
@@ -351,7 +421,7 @@ const Create = () => {
                           value={donation.description}
                           onChange={(e) => handleDonationChange(donation.id, 'description', e.target.value)}
                           placeholder="Explain what these donations will be used for..."
-                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ff4fa3] outline-none resize-none"
+                          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pulse-pink-accent outline-none resize-none"
                         ></textarea>
                       </div>
                     </div>
@@ -361,7 +431,7 @@ const Create = () => {
                 <button
                   type="button"
                   onClick={addDonation}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-colors rounded-lg text-[#c13ac7] bg-[#c13ac7]/10 hover:bg-[#c13ac7]/20"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-colors rounded-lg text-pulse-gradient-blend bg-pulse-gradient-blend/10 hover:bg-pulse-gradient-blend/20"
                 >
                   <Plus size={16} /> Add Another Donation Goal
                 </button>
@@ -379,7 +449,7 @@ const Create = () => {
             </button>
             <button 
               type="submit" 
-              className="px-8 py-3 font-bold text-white transition-all shadow-lg rounded-xl bg-gradient-to-r from-[#5a1fb5] via-[#7b2bc9] to-[#c13ac7] shadow-[#5a1fb5]/25 hover:shadow-xl hover:-translate-y-0.5"
+              className="px-8 py-3 font-bold text-white transition-all shadow-lg rounded-xl bg-linear-to-r from-pulse-purple-primary via-pulse-purple-secondary to-pulse-gradient-blend shadow-[#5a1fb5]/25 hover:shadow-xl hover:-translate-y-0.5"
             >
               Publish Event
             </button>
