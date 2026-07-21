@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict 2hr8TmYbnvLcoxn9Jq6Iao4gV7ExLYVgthqJeCjlddYWgaHWiy5vaCA91yAWj1f
+\restrict ctLBBAPcjDwGZJ66jYIyZHcHVNrhpa0lWuNyjPciXwGThdoxB2wiEurpseGZXrk
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-07-14 04:29:19
+-- Started on 2026-07-21 21:18:03
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,7 +22,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 4946 (class 1262 OID 24576)
+-- TOC entry 4947 (class 1262 OID 24576)
 -- Name: auth_db; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -31,9 +31,9 @@ CREATE DATABASE auth_db WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVI
 
 ALTER DATABASE auth_db OWNER TO postgres;
 
-\unrestrict 2hr8TmYbnvLcoxn9Jq6Iao4gV7ExLYVgthqJeCjlddYWgaHWiy5vaCA91yAWj1f
+\unrestrict ctLBBAPcjDwGZJ66jYIyZHcHVNrhpa0lWuNyjPciXwGThdoxB2wiEurpseGZXrk
 \connect auth_db
-\restrict 2hr8TmYbnvLcoxn9Jq6Iao4gV7ExLYVgthqJeCjlddYWgaHWiy5vaCA91yAWj1f
+\restrict ctLBBAPcjDwGZJ66jYIyZHcHVNrhpa0lWuNyjPciXwGThdoxB2wiEurpseGZXrk
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -83,7 +83,7 @@ CREATE SEQUENCE public.otps_id_seq
 ALTER SEQUENCE public.otps_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4947 (class 0 OID 0)
+-- TOC entry 4948 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: otps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -124,7 +124,7 @@ CREATE SEQUENCE public.password_resets_id_seq
 ALTER SEQUENCE public.password_resets_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4948 (class 0 OID 0)
+-- TOC entry 4949 (class 0 OID 0)
 -- Dependencies: 224
 -- Name: password_resets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -164,7 +164,8 @@ CREATE TABLE public.users (
     google_id character varying,
     auth_providers character varying[],
     is_verified boolean,
-    id_verified boolean
+    id_verified boolean,
+    theme_preference character varying(10) DEFAULT 'light'::character varying
 );
 
 
@@ -187,7 +188,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4949 (class 0 OID 0)
+-- TOC entry 4950 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -196,7 +197,7 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 4770 (class 2604 OID 49179)
+-- TOC entry 4771 (class 2604 OID 49179)
 -- Name: otps id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -204,7 +205,7 @@ ALTER TABLE ONLY public.otps ALTER COLUMN id SET DEFAULT nextval('public.otps_id
 
 
 --
--- TOC entry 4772 (class 2604 OID 81930)
+-- TOC entry 4773 (class 2604 OID 81930)
 -- Name: password_resets id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -220,7 +221,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 4781 (class 2606 OID 49187)
+-- TOC entry 4782 (class 2606 OID 49187)
 -- Name: otps otps_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -229,7 +230,7 @@ ALTER TABLE ONLY public.otps
 
 
 --
--- TOC entry 4791 (class 2606 OID 81941)
+-- TOC entry 4792 (class 2606 OID 81941)
 -- Name: password_resets password_resets_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -238,7 +239,7 @@ ALTER TABLE ONLY public.password_resets
 
 
 --
--- TOC entry 4793 (class 2606 OID 81939)
+-- TOC entry 4794 (class 2606 OID 81939)
 -- Name: password_resets password_resets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -247,7 +248,7 @@ ALTER TABLE ONLY public.password_resets
 
 
 --
--- TOC entry 4785 (class 2606 OID 49211)
+-- TOC entry 4786 (class 2606 OID 49211)
 -- Name: pending_registrations pending_registrations_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -256,7 +257,7 @@ ALTER TABLE ONLY public.pending_registrations
 
 
 --
--- TOC entry 4787 (class 2606 OID 49198)
+-- TOC entry 4788 (class 2606 OID 49198)
 -- Name: pending_registrations pending_registrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -265,7 +266,7 @@ ALTER TABLE ONLY public.pending_registrations
 
 
 --
--- TOC entry 4775 (class 2606 OID 49189)
+-- TOC entry 4776 (class 2606 OID 49189)
 -- Name: users unique_email; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -274,7 +275,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4783 (class 2606 OID 57345)
+-- TOC entry 4784 (class 2606 OID 57345)
 -- Name: otps unique_email_otp; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -283,7 +284,7 @@ ALTER TABLE ONLY public.otps
 
 
 --
--- TOC entry 4777 (class 2606 OID 32769)
+-- TOC entry 4778 (class 2606 OID 32769)
 -- Name: users unique_google_id; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -292,7 +293,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4789 (class 2606 OID 49209)
+-- TOC entry 4790 (class 2606 OID 49209)
 -- Name: pending_registrations unique_pending_email; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -301,7 +302,7 @@ ALTER TABLE ONLY public.pending_registrations
 
 
 --
--- TOC entry 4779 (class 2606 OID 24595)
+-- TOC entry 4780 (class 2606 OID 24595)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -309,11 +310,11 @@ ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 
--- Completed on 2026-07-14 04:29:20
+-- Completed on 2026-07-21 21:18:03
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 2hr8TmYbnvLcoxn9Jq6Iao4gV7ExLYVgthqJeCjlddYWgaHWiy5vaCA91yAWj1f
+\unrestrict ctLBBAPcjDwGZJ66jYIyZHcHVNrhpa0lWuNyjPciXwGThdoxB2wiEurpseGZXrk
 
